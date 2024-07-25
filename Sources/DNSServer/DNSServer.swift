@@ -1,6 +1,6 @@
 // The Swift Programming Language
 // https://docs.swift.org/swift-book
-// 
+//
 // Swift Argument Parser
 // https://swiftpackageindex.com/apple/swift-argument-parser/documentation
 
@@ -23,11 +23,11 @@ struct DNSServer: ParsableCommand {
             switch update {
             case .ready:
                 // This is Part 1 of the UDP Listener
-//                self.isReady = true
+                //                self.isReady = true
                 print("Listener connected to port \(port)")
             case .failed, .cancelled:
                 // Announce we are no longer able to listen
-//                self.isReady = false
+                //                self.isReady = false
                 print("Listener disconnected from port \(port)")
             default:
                 print("Listener connecting to port \(port)…")
@@ -36,12 +36,11 @@ struct DNSServer: ParsableCommand {
         listener?.newConnectionHandler = { connection in
             print("Listener receiving new message")
             // This is Part 2 of the UDP Listener, handle an incoming "connection"
-//            self.createConnection(connection: connection)
+            //            self.createConnection(connection: connection)
         }
         listener?.start(queue: .main)
     }
 }
-
 
 //private final class EchoHandler: ChannelInboundHandler {
 //    typealias InboundIn = AddressedEnvelope<ByteBuffer>

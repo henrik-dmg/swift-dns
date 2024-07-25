@@ -1,6 +1,6 @@
 //
 //  DNSHeaderTests.swift
-//  
+//
 //
 //  Created by Henrik Panhans on 25.07.24.
 //
@@ -8,26 +8,33 @@
 import Foundation
 import Testing
 
+@testable import DNSKit
+
 @Suite
 struct DNSHeaderTests {
 
     @Test
-    func helloWorld() throws {
+    func query() throws {
         let path = try #require(Bundle.module.url(forResource: "query_packet", withExtension: "txt"))
         let data = try Data(contentsOf: path)
-        print(data.hexEncodedString())
+        var byteBuffer = ByteBuffer(data.prefix(12))
+        let header = try DNSHeader.decode(from: &byteBuffer)
+
+        #expect(header.numberOfQueries == 1)
+        #expect(header.numberOfRecords == 0)
+        #expect(!header.isResponse)
     }
 
-}
+    @Test
+    func response() throws {
+        let path = try #require(Bundle.module.url(forResource: "response_packet", withExtension: "txt"))
+        let data = try Data(contentsOf: path)
+        var byteBuffer = ByteBuffer(data.prefix(12))
+        let header = try DNSHeader.decode(from: &byteBuffer)
 
-extension Data {
-    struct HexEncodingOptions: OptionSet {
-        let rawValue: Int
-        static let upperCase = HexEncodingOptions(rawValue: 1 << 0)
+        #expect(header.numberOfQueries == 1)
+        #expect(header.numberOfRecords == 1)
+        #expect(header.isResponse)
     }
 
-    func hexEncodedString(options: HexEncodingOptions = []) -> String {
-        let format = options.contains(.upperCase) ? "%02hhX" : "%02hhx"
-        return self.map { String(format: format, $0) }.joined(separator: " ")
-    }
 }

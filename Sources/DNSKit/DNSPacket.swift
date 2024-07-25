@@ -1,0 +1,54 @@
+//
+//  DNSPacket.swift
+//  swift-dns
+//
+//  Created by Henrik Panhans on 25.07.24.
+//
+
+import Foundation
+
+public struct DNSPacket {
+
+    let header: DNSHeader
+    let queries: [DNSQuery]
+    let records: [DNSRecord]
+    let authorities: [DNSRecord]
+    let resources: [DNSRecord]
+
+    // MARK: - DNSPacketDecodable
+
+    public static func decode(from data: Data) throws -> DNSPacket {
+        var byteBuffer = ByteBuffer(data)
+
+        let header = try DNSHeader.decode(from: &byteBuffer)
+
+        var queries: [DNSQuery] = []
+        for _ in 0 ..< header.numberOfQueries {
+            let query = try DNSQuery.decode(from: &byteBuffer)
+            queries.append(query)
+        }
+
+        var records: [DNSRecord] = []
+        for _ in 0 ..< header.numberOfRecords {
+            let record = try DNSRecordDecoder.decode(from: &byteBuffer)
+            records.append(record)
+        }
+
+        var authorities: [DNSRecord] = []
+        for _ in 0 ..< header.numberOfAuthorities {
+            let record = try DNSRecordDecoder.decode(from: &byteBuffer)
+            authorities.append(record)
+        }
+
+        var resources: [DNSRecord] = []
+        for _ in 0 ..< header.numberOfResources {
+            let record = try DNSRecordDecoder.decode(from: &byteBuffer)
+            resources.append(record)
+        }
+
+        print("ByteBuffer is at \(byteBuffer.position)/\(data.count)")
+
+        return DNSPacket(header: header, queries: queries, records: records, authorities: authorities, resources: resources)
+    }
+
+}

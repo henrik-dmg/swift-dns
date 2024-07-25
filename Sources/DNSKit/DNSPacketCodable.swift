@@ -15,7 +15,7 @@ public protocol DNSPacketEncodable {
 
 public protocol DNSPacketDecodable {
 
-    static func decode(from data: Data) throws -> Self
+    static func decode(from byteBuffer: inout ByteBuffer) throws -> Self
 
 }
 
