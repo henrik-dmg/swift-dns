@@ -34,8 +34,11 @@ struct DNSPacketTests {
         let data = try Data(contentsOf: path)
         let packet = try DNSPacket.decode(from: data)
         let encodedPacket = try packet.encode()
+        let packet2 = try DNSPacket.decode(from: encodedPacket)
+        let encodedPacket2 = try packet2.encode()
 
         #expect(encodedPacket == data)
+        #expect(encodedPacket2 == data)
     }
 
     @Test
