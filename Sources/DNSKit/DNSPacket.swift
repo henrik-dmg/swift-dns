@@ -9,11 +9,11 @@ import Foundation
 
 public struct DNSPacket {
 
-    let header: DNSHeader
-    let queries: [DNSQuery]
-    let records: [DNSRecord]
-    let authorities: [DNSRecord]
-    let resources: [DNSRecord]
+    public let header: DNSHeader
+    public let queries: [DNSQuery]
+    public let records: [DNSRecord]
+    public let authorities: [DNSRecord]
+    public let resources: [DNSRecord]
 
     // MARK: - DNSPacketDecodable
 

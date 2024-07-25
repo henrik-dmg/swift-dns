@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct DNSLabels {
+public struct DNSLabels {
 
     enum DecodeError: LocalizedError {
         case cantConvertToString(bytes: Data)
@@ -18,7 +18,7 @@ struct DNSLabels {
     static let maxAllowedJumps = 5
     static let jumpDirective: UInt8 = 0xC0
 
-    let labels: [String]
+    public let labels: [String]
 
 }
 

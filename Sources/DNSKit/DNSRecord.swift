@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol DNSRecord {}
+public protocol DNSRecord {}
 
 struct DNSRecordDecoder {
 
@@ -41,19 +41,19 @@ struct DNSRecordDecoder {
 
 }
 
-struct DNSUnknownRecord: DNSRecord {
-    let labels: DNSLabels
-    let recordType: DNSRecordType
-    let recordClass: UInt16
-    let timeToLive: UInt32
-    let length: UInt16
+public struct DNSUnknownRecord: DNSRecord {
+    public let labels: DNSLabels
+    public let recordType: DNSRecordType
+    public let recordClass: UInt16
+    public let timeToLive: UInt32
+    public let length: UInt16
 }
 
-struct DNSARecord: DNSRecord {
-    let labels: DNSLabels
-    let recordClass: UInt16
-    let timeToLive: UInt32
-    let ipFragments: [UInt8]
+public struct DNSARecord: DNSRecord {
+    public let labels: DNSLabels
+    public let recordClass: UInt16
+    public let timeToLive: UInt32
+    public let ipFragments: [UInt8]
 }
 
 public enum DNSRecordType: UInt16 {

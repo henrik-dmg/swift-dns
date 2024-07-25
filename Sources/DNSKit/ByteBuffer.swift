@@ -66,13 +66,6 @@ public struct ByteBuffer {
         return subData
     }
 
-    func getBytes(_ count: Int) throws -> Data {
-        guard let endIndex = data.index(position, offsetBy: count, limitedBy: data.endIndex) else {
-            throw BufferError.indexOutOfBounds
-        }
-        return data.subdata(in: position ..< endIndex)
-    }
-
 }
 
 extension Data {

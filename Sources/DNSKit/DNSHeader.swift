@@ -34,13 +34,10 @@ public struct DNSHeader {
     // MARK: - Nested Types
 
     enum DecodingError: LocalizedError {
-        case unknown
         case cantReadResultCode(UInt8)
     }
 
     // MARK: - Properties
-
-    static let sizeInBytes = 12
 
     public let id: UInt16
     public let isRecursionDesired: Bool
