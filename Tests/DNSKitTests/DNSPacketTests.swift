@@ -14,7 +14,7 @@ import Testing
 struct DNSPacketTests {
 
     @Test
-    func queryPacket() throws {
+    func decodeQueryPacket() throws {
         let path = try #require(Bundle.module.url(forResource: "query_packet", withExtension: "txt"))
         let data = try Data(contentsOf: path)
         let packet = try DNSPacket.decode(from: data)
@@ -29,7 +29,17 @@ struct DNSPacketTests {
     }
 
     @Test
-    func responsePacket() throws {
+    func encodeQueryPacket() throws {
+        let path = try #require(Bundle.module.url(forResource: "query_packet", withExtension: "txt"))
+        let data = try Data(contentsOf: path)
+        let packet = try DNSPacket.decode(from: data)
+        let encodedPacket = try packet.encode()
+
+        #expect(encodedPacket == data)
+    }
+
+    @Test
+    func decodeResponsePacket() throws {
         let path = try #require(Bundle.module.url(forResource: "response_packet", withExtension: "txt"))
         let data = try Data(contentsOf: path)
         let packet = try DNSPacket.decode(from: data)

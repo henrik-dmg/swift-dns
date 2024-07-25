@@ -7,13 +7,22 @@
 
 import Foundation
 
-public struct DNSLabels: Equatable {
+public struct DNSLabels: Equatable, Sendable {
 
-    enum DecodeError: LocalizedError {
+    // MARK: - Nested Types
+
+    enum DecoderError: LocalizedError {
         case cantConvertToString(bytes: Data)
         case noLabelsDecoded
         case maximumNumberOfJumpsReached
     }
+
+    enum EncoderError: LocalizedError {
+        case labelTooLong(label: String)
+        case cantEncodeLabel(label: String)
+    }
+
+    // MARK: - Properties
 
     static let maxAllowedJumps = 5
     static let jumpDirective: UInt8 = 0xC0
@@ -22,7 +31,9 @@ public struct DNSLabels: Equatable {
 
 }
 
-extension DNSLabels {
+// MARK: - Decoding
+
+extension DNSLabels: DNSPacketDecodable {
 
     static func decode(from byteBuffer: inout ByteBufferReader) throws -> DNSLabels {
         var labels: [String] = []
@@ -33,7 +44,7 @@ extension DNSLabels {
 
         while true {
             guard jumpsPerformed <= DNSLabels.maxAllowedJumps else {
-                throw DecodeError.maximumNumberOfJumpsReached
+                throw DecoderError.maximumNumberOfJumpsReached
             }
 
             let labelLength = try byteBuffer.readByte()
@@ -50,10 +61,10 @@ extension DNSLabels {
                 try byteBuffer.seek(Int(labelOffset))
             } else {
                 let labelBytes = try byteBuffer.readBytes(Int(labelLength))
-                if let label = String(data: labelBytes, encoding: .utf8) {
+                if let label = String(data: labelBytes, encoding: .ascii) {
                     labels.append(label)
                 } else {
-                    throw DecodeError.cantConvertToString(bytes: labelBytes)
+                    throw DecoderError.cantConvertToString(bytes: labelBytes)
                 }
             }
         }
@@ -63,10 +74,31 @@ extension DNSLabels {
         }
 
         guard !labels.isEmpty else {
-            throw DecodeError.noLabelsDecoded
+            throw DecoderError.noLabelsDecoded
         }
 
         return DNSLabels(labels: labels)
+    }
+
+}
+
+// MARK: - Encoding
+
+extension DNSLabels: DNSPacketEncodable {
+
+    func encode(into byteBuffer: inout ByteBufferWriter) throws {
+        for label in self.labels {
+            guard label.count < 63 else {
+                throw EncoderError.labelTooLong(label: label)
+            }
+            guard let labelData = label.data(using: .ascii) else {
+                throw EncoderError.cantEncodeLabel(label: label)
+            }
+            byteBuffer.write(UInt8(label.count))
+            byteBuffer.write(Array(labelData))
+        }
+        // Write single zero to signal termination of label sequence
+        byteBuffer.write(UInt8(0))
     }
 
 }

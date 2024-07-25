@@ -13,11 +13,6 @@ struct DNSRecordDecoder {
         case cantReadRecordType
     }
 
-    enum DNSRecordType: UInt16 {
-        case unknown
-        case A = 1
-    }
-
 }
 
 extension DNSRecordDecoder: DNSPacketDecodable {
@@ -29,18 +24,25 @@ extension DNSRecordDecoder: DNSPacketDecodable {
         let timeToLive = try byteBuffer.readUInt32()
         let length = try byteBuffer.readUInt16()
 
+        let customData = try byteBuffer.readBytes(Int(length))
+
         switch recordType {
         case .unknown:
             return DNSUnknownRecord(
                 labels: labels,
-                recordType: recordType!.rawValue,
+                recordType: recordType!,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
-                length: length
+                bytes: customData
             )
         case .A:
-            let ipFragments = try byteBuffer.readBytes(Int(length))
-            return DNSARecord(labels: labels, recordClass: recordClass, timeToLive: timeToLive, ipFragments: Array(ipFragments))
+            return DNSARecord(
+                labels: labels,
+                recordType: recordType!,
+                recordClass: recordClass,
+                timeToLive: timeToLive,
+                ipFragments: Array(customData)
+            )
         case .none:
             throw DecodingError.cantReadRecordType
         }

@@ -7,13 +7,13 @@
 
 import Foundation
 
-public protocol DNSPacketEncodable {
+protocol DNSPacketEncodable {
 
     func encode(into byteBuffer: inout ByteBufferWriter) throws
 
 }
 
-public protocol DNSPacketDecodable {
+protocol DNSPacketDecodable {
 
     associatedtype Value
 

@@ -15,7 +15,11 @@ public struct DNSPacket {
     public let authorities: [DNSRecord]
     public let resources: [DNSRecord]
 
-    // MARK: - DNSPacketDecodable
+}
+
+// MARK: - Decoding
+
+extension DNSPacket {
 
     public static func decode(from data: Data) throws -> DNSPacket {
         var byteBuffer = ByteBufferReader(data)
@@ -51,6 +55,42 @@ public struct DNSPacket {
         }
 
         return DNSPacket(header: header, queries: queries, records: records, authorities: authorities, resources: resources)
+    }
+
+}
+
+// MARK: - Encoding
+
+extension DNSPacket {
+
+    enum EncoderError: LocalizedError {
+        case unencodableRecordFound(record: DNSRecord)
+    }
+
+    public func encode() throws -> Data {
+        var byteBuffer = ByteBufferWriter()
+
+        try header.encode(into: &byteBuffer)
+
+        for query in queries {
+            try query.encode(into: &byteBuffer)
+        }
+
+        try encodeRecords(records, into: &byteBuffer)
+        try encodeRecords(authorities, into: &byteBuffer)
+        try encodeRecords(resources, into: &byteBuffer)
+
+        return byteBuffer.data
+    }
+
+    private func encodeRecords(_ records: [DNSRecord], into byteBuffer: inout ByteBufferWriter) throws {
+        for record in records {
+            guard let encodableRecord = record as? DNSRecordEncodable else {
+                throw EncoderError.unencodableRecordFound(record: record)
+            }
+            try encodableRecord.encodeSharedValues(into: &byteBuffer)
+            try encodableRecord.encodeAdditionalData(into: &byteBuffer)
+        }
     }
 
 }

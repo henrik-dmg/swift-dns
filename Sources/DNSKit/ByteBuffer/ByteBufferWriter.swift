@@ -11,7 +11,7 @@ public struct ByteBufferWriter: ByteBufferProtocol {
 
     // MARK: - Properties
 
-    var data: Data
+    private(set) var data: Data
     var currentIndex: Data.Index = 0
 
     // MARK: - Init
@@ -22,14 +22,34 @@ public struct ByteBufferWriter: ByteBufferProtocol {
 
     // MARK: - Methods
 
-    mutating func writeUInt16(_ value: UInt16) {
-        let firstHalf = UInt8(value >> 8)
-        let secondHalf = UInt8(value & 0xFF)
-        writeBytes([firstHalf, secondHalf])
+    mutating func write(_ value: UInt32) {
+        let firstHalf = UInt16(value >> 16)
+        let secondHalf = UInt16(value & 0xFFFF)
+        write(firstHalf)
+        write(secondHalf)
     }
 
-    mutating func writeBytes(_ bytes: [UInt8]) {
+    mutating func write(_ value: UInt16) {
+        let firstHalf = UInt8(value >> 8)
+        let secondHalf = UInt8(value & 0xFF)
+        data.append(firstHalf)
+        data.append(secondHalf)
+    }
+
+    mutating func write(_ value: UInt8) {
+        data.append(value)
+    }
+
+    mutating func write(_ value: Bool) {
+        data.append(value ? 1 : 0)
+    }
+
+    mutating func write(_ bytes: [UInt8]) {
         data.append(contentsOf: bytes)
+    }
+
+    mutating func write(_ data: Data) {
+        self.data.append(data)
     }
 
 }

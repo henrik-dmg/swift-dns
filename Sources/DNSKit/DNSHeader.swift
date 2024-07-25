@@ -59,6 +59,8 @@ public struct DNSHeader {
 
 }
 
+// MARK: - Decoding
+
 extension DNSHeader: DNSPacketDecodable {
 
     /*
@@ -121,6 +123,38 @@ extension DNSHeader: DNSPacketDecodable {
             numberOfAuthorities: numberOfAuthorities,
             numberOfResources: numberOfResources
         )
+    }
+
+}
+
+// MARK: - Encoding
+
+extension DNSHeader: DNSPacketEncodable {
+
+    func encode(into byteBuffer: inout ByteBufferWriter) throws {
+        byteBuffer.write(id)
+
+        let flagA =
+            UInt8(isRecursionDesired ? 1 : 0)
+            | (UInt8(isMessageTruncated ? 1 : 0) << 1)
+            | (UInt8(isAnswerAuthorative ? 1 : 0) << 2)
+            | (opCode << 3)
+            | (UInt8(isResponse ? 1 : 0) << 7)
+        byteBuffer.write(flagA)
+
+        let flagB =
+            resultCode.rawValue
+            | (UInt8(isCheckingDisabled ? 1 : 0) << 4)
+            | (UInt8(isAuthedData ? 1 : 0) << 5)
+            | (UInt8(z ? 1 : 0) << 6)
+            | (UInt8(isRecursionAvailable ? 1 : 0) << 7)
+        byteBuffer.write(flagB)
+
+        byteBuffer.write(numberOfQueries)
+        byteBuffer.write(numberOfRecords)
+        byteBuffer.write(numberOfAuthorities)
+        byteBuffer.write(numberOfResources)
+
     }
 
 }
