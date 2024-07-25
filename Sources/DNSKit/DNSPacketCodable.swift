@@ -9,14 +9,14 @@ import Foundation
 
 public protocol DNSPacketEncodable {
 
-    func encode() throws -> Data
+    func encode(into byteBuffer: inout ByteBufferWriter) throws
 
 }
 
 public protocol DNSPacketDecodable {
 
-    static func decode(from byteBuffer: inout ByteBuffer) throws -> Self
+    associatedtype Value
+
+    static func decode(from byteBuffer: inout ByteBufferReader) throws -> Value
 
 }
-
-public typealias DNSPacketCodable = DNSPacketEncodable & DNSPacketDecodable

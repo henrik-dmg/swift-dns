@@ -78,7 +78,7 @@ extension DNSHeader: DNSPacketDecodable {
      | NSCOUNT  | Authority Count      | 16 bits            |
      | ARCOUNT  | Additional Count     | 16 bits            |
      */
-    public static func decode(from byteBuffer: inout ByteBuffer) throws -> DNSHeader {
+    public static func decode(from byteBuffer: inout ByteBufferReader) throws -> DNSHeader {
         let id = try byteBuffer.readUInt16()
 
         let flagsA = try byteBuffer.readByte()

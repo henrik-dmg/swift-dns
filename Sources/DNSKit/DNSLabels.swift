@@ -7,7 +7,7 @@
 
 import Foundation
 
-public struct DNSLabels {
+public struct DNSLabels: Equatable {
 
     enum DecodeError: LocalizedError {
         case cantConvertToString(bytes: Data)
@@ -24,10 +24,10 @@ public struct DNSLabels {
 
 extension DNSLabels {
 
-    static func decode(from byteBuffer: inout ByteBuffer) throws -> DNSLabels {
+    static func decode(from byteBuffer: inout ByteBufferReader) throws -> DNSLabels {
         var labels: [String] = []
 
-        let initialPosition = byteBuffer.position
+        let initialPosition = byteBuffer.currentIndex
         var hasJumped = false
         var jumpsPerformed = 0
 
@@ -47,7 +47,6 @@ extension DNSLabels {
                 let jumpDestinationByte = try byteBuffer.readByte()
                 let labelOffset = UInt16(labelLength ^ Self.jumpDirective) << 8 + UInt16(jumpDestinationByte)
                 jumpsPerformed += 1
-                print("Jumping to \(labelOffset)", labelLength, jumpDestinationByte)
                 try byteBuffer.seek(Int(labelOffset))
             } else {
                 let labelBytes = try byteBuffer.readBytes(Int(labelLength))

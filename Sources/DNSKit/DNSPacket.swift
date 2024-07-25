@@ -18,7 +18,7 @@ public struct DNSPacket {
     // MARK: - DNSPacketDecodable
 
     public static func decode(from data: Data) throws -> DNSPacket {
-        var byteBuffer = ByteBuffer(data)
+        var byteBuffer = ByteBufferReader(data)
 
         let header = try DNSHeader.decode(from: &byteBuffer)
 
@@ -46,7 +46,9 @@ public struct DNSPacket {
             resources.append(record)
         }
 
-        print("ByteBuffer is at \(byteBuffer.position)/\(data.count)")
+        if byteBuffer.currentIndex < data.count {
+            print("ByteBuffer has parsed \(byteBuffer.currentIndex)/\(data.count) bytes")
+        }
 
         return DNSPacket(header: header, queries: queries, records: records, authorities: authorities, resources: resources)
     }

@@ -15,7 +15,7 @@ public struct DNSQuery {
 
 extension DNSQuery: DNSPacketDecodable {
 
-    public static func decode(from byteBuffer: inout ByteBuffer) throws -> DNSQuery {
+    public static func decode(from byteBuffer: inout ByteBufferReader) throws -> DNSQuery {
         DNSQuery(
             labels: try DNSLabels.decode(from: &byteBuffer),
             recordType: try byteBuffer.readUInt16(),

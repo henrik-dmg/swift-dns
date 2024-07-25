@@ -11,26 +11,21 @@ import Testing
 @testable import DNSKit
 
 @Suite
-struct ByteBufferTests {
+struct ByteBufferReaderTests {
 
     @Test(arguments: [1, 2, 3, 4, 5])
     func int16(value: UInt8) throws {
-        var buffer = ByteBuffer([0, value])
+        var buffer = ByteBufferReader([0, value])
         let int = try buffer.readUInt16()
         #expect(int == value)
     }
 
     @Test(arguments: [1, 2, 3, 4, 5])
     func int16Bigger(value: UInt8) throws {
-        var buffer = ByteBuffer([1, value])
+        var buffer = ByteBufferReader([1, value])
         let int = try buffer.readUInt16()
-
-        var bufferWrong = ByteBuffer([1, value])
-        let intWrong = try bufferWrong.readUInt16Wrong()
-
         let expectedValue = UInt16(value) + UInt16(UInt8.max) + 1
         #expect(int == expectedValue)
-        #expect(intWrong == expectedValue)
     }
 
 }
