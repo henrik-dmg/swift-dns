@@ -11,6 +11,18 @@ public struct DNSQuery: Equatable {
     public let recordType: DNSRecordType
     public let recordClass: UInt16
 
+    // MARK: - Init
+
+    public init(labels: [String], recordType: DNSRecordType, recordClass: UInt16) {
+        self.init(labels: DNSLabels(labels: labels), recordType: recordType, recordClass: recordClass)
+    }
+
+    init(labels: DNSLabels, recordType: DNSRecordType, recordClass: UInt16) {
+        self.labels = labels
+        self.recordType = recordType
+        self.recordClass = recordClass
+    }
+
 }
 
 // MARK: - Decoding

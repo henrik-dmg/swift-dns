@@ -50,7 +50,7 @@ struct ByteBufferReader: ByteBufferReading {
 
     mutating func readBytes(_ count: Int) throws -> Data {
         guard let endIndex = data.index(currentIndex, offsetBy: count, limitedBy: data.endIndex) else {
-            throw ByteBufferError.indexOutOfBounds
+            throw ByteBufferError.indexOutOfBounds(currentIndex, data.endIndex)
         }
         let subData = data.subdata(in: currentIndex ..< endIndex)
         currentIndex = endIndex

@@ -8,7 +8,16 @@
 import Foundation
 
 enum ByteBufferError: LocalizedError {
-    case indexOutOfBounds
+
+    case indexOutOfBounds(Data.Index, Data.Index)
+
+    var errorDescription: String? {
+        switch self {
+        case .indexOutOfBounds(let index, let index2):
+            "Data out of bounds requested. Request: \(index), end: \(index2)"
+        }
+    }
+
 }
 
 public protocol ByteBuffer {
@@ -24,7 +33,7 @@ extension ByteBuffer {
 
     mutating func seek(_ index: Data.Index) throws {
         guard data.indices.contains(index) else {
-            throw ByteBufferError.indexOutOfBounds
+            throw ByteBufferError.indexOutOfBounds(index, data.endIndex)
         }
         currentIndex = index
     }

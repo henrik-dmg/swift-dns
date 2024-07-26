@@ -15,8 +15,22 @@ struct DNSPacketCompressor: ByteBufferWriting {
     // MARK: - Nested Types
 
     enum EncoderError: LocalizedError {
+
         case labelTooLong(label: String)
         case cantEncodeLabel(label: String)
+        case didNotWriteJumpDirectiveLast
+
+        var errorDescription: String? {
+            switch self {
+            case .labelTooLong(let label):
+                "Label \"\(label)\" is too long"
+            case .cantEncodeLabel(let label):
+                "Can't connect label \"\(label)\" to ASCII"
+            case .didNotWriteJumpDirectiveLast:
+                "Compressor did not write jump directive last, this shouldn't happen"
+            }
+        }
+
     }
 
     // MARK: - Properties
@@ -31,6 +45,8 @@ struct DNSPacketCompressor: ByteBufferWriting {
         get { byteBuffer.currentIndex }
         set { byteBuffer.currentIndex = newValue }
     }
+
+    private var labelPositions: [DNSLabelPosition] = []
 
     // MARK: - Init
 
@@ -71,15 +87,19 @@ struct DNSPacketCompressor: ByteBufferWriting {
     mutating func write(_ labels: DNSLabels) throws {
         var remainingLabelsToEncode = labels.labels
         var hasWrittenJumpDirectiveLast = false
+        var hasWrittenJumpDirective = false
+        var labelsSavedByJumpDirective = 0
 
         while !remainingLabelsToEncode.isEmpty {
-            let labelMatch = findExistingLabel(remainingLabels: remainingLabelsToEncode)
+            let labelMatchPosition = findExistingLabel(remainingLabels: remainingLabelsToEncode)
 
-            if let labelMatch {
-                let jumpPosition = labelMatch.index ^ (UInt16(DNSLabels.jumpDirective) << 8)
+            if let labelMatchPosition {
+                let jumpPosition = labelMatchPosition.index ^ (UInt16(DNSLabels.jumpDirective) << 8)
+                labelsSavedByJumpDirective += labelMatchPosition.labels.count
                 byteBuffer.write(jumpPosition)
-                remainingLabelsToEncode = Array(remainingLabelsToEncode.dropFirst(labelMatch.length))
+                remainingLabelsToEncode = Array(remainingLabelsToEncode.dropFirst(labelMatchPosition.labels.count))
                 hasWrittenJumpDirectiveLast = true
+                hasWrittenJumpDirective = true
             } else {
                 if let firstLabel = remainingLabelsToEncode.first {
                     try writeLabel(firstLabel)
@@ -91,47 +111,33 @@ struct DNSPacketCompressor: ByteBufferWriting {
             }
         }
 
-        if !hasWrittenJumpDirectiveLast {
+        guard hasWrittenJumpDirective else {
             // Write single zero to signal termination of label sequence
             byteBuffer.write(UInt8(0))
+            return
+        }
+
+        if !hasWrittenJumpDirectiveLast {
+            throw EncoderError.didNotWriteJumpDirectiveLast
         }
     }
 
     private mutating func writeLabel(_ label: String) throws {
         let offset = byteBuffer.currentIndex
         try byteBuffer.write(label)
-        let labelPosition = LabelPosition(index: UInt16(offset), label: label)
+        let labelPosition = DNSLabelPosition(index: UInt16(offset), label: label)
         labelPositions.append(labelPosition)
     }
 
-    private func findExistingLabel(remainingLabels: [String]) -> (index: UInt16, length: Int)? {
-        var remainingLabelsToSearchFor = remainingLabels.prefix(labelPositions.count)
-
-        while !remainingLabelsToSearchFor.isEmpty {
-            for window in labelPositions.windows(ofCount: remainingLabelsToSearchFor.count) {
-                let windowLabels = window.map { $0.label }
-                if windowLabels == Array(remainingLabelsToSearchFor.prefix(windowLabels.count)), let firstLabelInWindow = window.first {
-                    return (firstLabelInWindow.index, windowLabels.count)
-                }
-            }
-            remainingLabelsToSearchFor = remainingLabelsToSearchFor.dropLast()
+    private func findExistingLabel(remainingLabels: [String]) -> DNSContinuousLabelPosition? {
+        guard !labelPositions.isEmpty else {
+            return nil
         }
 
-        return nil
-    }
+        let continuousLabelGroups = labelPositions.continuousPositions()
 
-    var labelPositions: [LabelPosition] = []
-
-    struct LabelPosition {
-        let index: UInt16
-        let label: String
-
-        func areLabelsContinuous(nextLabel: LabelPosition) -> Bool {
-            guard let labelData = label.data(using: .ascii) else {
-                return false
-            }
-            let expectedOffset = index + UInt16(labelData.count) + 1  // + 1 because we also write the length of the label
-            return nextLabel.index == expectedOffset
+        return continuousLabelGroups.first { labelPosition in
+            labelPosition.labels == remainingLabels
         }
     }
 

@@ -56,20 +56,93 @@ struct DNSPacketTests {
         "query_packet",
         "query_packet_big",
         "query_packet_aaaa",
+        "query_packet_mixed",
         "response_packet",
         "response_packet_big",
         "response_packet_aaaa",
+        "response_packet_mixed",
     ])
     func encodePacket(packetName: String) throws {
         let path = try #require(Bundle.module.url(forResource: packetName, withExtension: "txt"))
         let data = try Data(contentsOf: path)
         let packet = try DNSPacket.decode(from: data)
-        let encodedPacket = try packet.encode()
-        let packet2 = try DNSPacket.decode(from: encodedPacket)
-        let encodedPacket2 = try packet2.encode()
+        let encodedPacket = try packet.encode(compressLabels: true)
 
         #expect(encodedPacket == data)
-        #expect(encodedPacket2 == data)
+        if encodedPacket != data {
+            print(data.hexEncodedString(options: .upperCase))
+            print(encodedPacket.hexEncodedString(options: .upperCase))
+        }
+    }
+
+    @Test
+    func encodeCustomPackage() throws {
+        let header = DNSHeader(
+            id: 599,
+            isRecursionDesired: false,
+            isMessageTruncated: false,
+            isAnswerAuthorative: true,
+            opCode: 1,
+            isResponse: true,
+            resultCode: .NOERROR,
+            isCheckingDisabled: false,
+            isAuthedData: true,
+            z: false,
+            isRecursionAvailable: true,
+            numberOfQueries: 3,
+            numberOfRecords: 3,
+            numberOfAuthorities: 0,
+            numberOfResources: 0
+        )
+
+        let dnsQuery1 = DNSQuery(labels: ["mail", "google", "com"], recordType: .A(1), recordClass: 1)
+        let dnsQuery2 = DNSQuery(labels: ["google", "com"], recordType: .A(1), recordClass: 1)
+        let dnsQuery3 = DNSQuery(labels: ["panhans", "dev"], recordType: .A(1), recordClass: 1)
+
+        let dnsRecord1 = DNSARecord(
+            labels: DNSLabels(labels: ["mail", "google", "com"]),
+            recordType: .A(1),
+            recordClass: 1,
+            timeToLive: 100,
+            lengthOfCustomData: 4,
+            ipFragments: [192, 168, 178, 1]
+        )
+        let dnsRecord2 = DNSARecord(
+            labels: DNSLabels(labels: ["google", "com"]),
+            recordType: .A(1),
+            recordClass: 1,
+            timeToLive: 100,
+            lengthOfCustomData: 4,
+            ipFragments: [192, 168, 178, 2]
+        )
+        let dnsRecord3 = DNSARecord(
+            labels: DNSLabels(labels: ["panhans", "dev"]),
+            recordType: .A(1),
+            recordClass: 1,
+            timeToLive: 100,
+            lengthOfCustomData: 4,
+            ipFragments: [192, 168, 178, 3]
+        )
+
+        let packet = DNSPacket(
+            header: header,
+            queries: [dnsQuery1, dnsQuery2, dnsQuery3],
+            records: [dnsRecord1, dnsRecord2, dnsRecord3],
+            authorities: [],
+            resources: []
+        )
+
+        let uncompressedPacketData = try packet.encode(compressLabels: false)
+        let compressedPacketData = try packet.encode(compressLabels: true)
+
+        let parsedPacketFromUncompressed = try DNSPacket.decode(from: uncompressedPacketData)
+        let parsedPacketFromCompressed = try DNSPacket.decode(from: compressedPacketData)
+
+        print(parsedPacketFromUncompressed)
+        print(parsedPacketFromCompressed)
+
+        print(compressedPacketData.count, uncompressedPacketData.count)
+        #expect(compressedPacketData.count < uncompressedPacketData.count)
     }
 
 }
