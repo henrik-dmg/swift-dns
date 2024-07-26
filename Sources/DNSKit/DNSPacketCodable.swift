@@ -9,7 +9,7 @@ import Foundation
 
 protocol DNSPacketEncodable {
 
-    func encode(into byteBuffer: inout ByteBufferWriter) throws
+    func encode(into byteBuffer: inout ByteBufferWriting) throws
 
 }
 
@@ -17,6 +17,6 @@ protocol DNSPacketDecodable {
 
     associatedtype Value
 
-    static func decode(from byteBuffer: inout ByteBufferReader) throws -> Value
+    static func decode(from byteBuffer: inout ByteBufferReading) throws -> Value
 
 }

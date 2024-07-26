@@ -29,7 +29,7 @@ import Foundation
 //    pub resource_entries: u16,      // 16 bits
 //}
 
-public struct DNSHeader {
+public struct DNSHeader: Equatable {
 
     // MARK: - Nested Types
 
@@ -80,7 +80,7 @@ extension DNSHeader: DNSPacketDecodable {
      | NSCOUNT  | Authority Count      | 16 bits            |
      | ARCOUNT  | Additional Count     | 16 bits            |
      */
-    public static func decode(from byteBuffer: inout ByteBufferReader) throws -> DNSHeader {
+    static func decode(from byteBuffer: inout ByteBufferReading) throws -> DNSHeader {
         let id = try byteBuffer.readUInt16()
 
         let flagsA = try byteBuffer.readByte()
@@ -131,7 +131,7 @@ extension DNSHeader: DNSPacketDecodable {
 
 extension DNSHeader: DNSPacketEncodable {
 
-    func encode(into byteBuffer: inout ByteBufferWriter) throws {
+    func encode(into byteBuffer: inout ByteBufferWriting) throws {
         byteBuffer.write(id)
 
         let flagA =

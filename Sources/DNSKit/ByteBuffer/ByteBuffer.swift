@@ -11,7 +11,7 @@ enum ByteBufferError: LocalizedError {
     case indexOutOfBounds
 }
 
-protocol ByteBufferProtocol {
+public protocol ByteBuffer {
 
     var data: Data { get }
     var currentIndex: Data.Index { get set }
@@ -20,7 +20,7 @@ protocol ByteBufferProtocol {
 
 }
 
-extension ByteBufferProtocol {
+extension ByteBuffer {
 
     mutating func seek(_ index: Data.Index) throws {
         guard data.indices.contains(index) else {

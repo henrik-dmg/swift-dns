@@ -11,9 +11,9 @@ public struct DNSPacket {
 
     public let header: DNSHeader
     public let queries: [DNSQuery]
-    public let records: [DNSRecord]
-    public let authorities: [DNSRecord]
-    public let resources: [DNSRecord]
+    public let records: [any DNSRecord]
+    public let authorities: [any DNSRecord]
+    public let resources: [any DNSRecord]
 
 }
 
@@ -22,7 +22,7 @@ public struct DNSPacket {
 extension DNSPacket {
 
     public static func decode(from data: Data) throws -> DNSPacket {
-        var byteBuffer = ByteBufferReader(data)
+        var byteBuffer: any ByteBufferReading = ByteBufferReader(data)
 
         let header = try DNSHeader.decode(from: &byteBuffer)
 
@@ -32,19 +32,19 @@ extension DNSPacket {
             queries.append(query)
         }
 
-        var records: [DNSRecord] = []
+        var records: [any DNSRecord] = []
         for _ in 0 ..< header.numberOfRecords {
             let record = try DNSRecordDecoder.decode(from: &byteBuffer)
             records.append(record)
         }
 
-        var authorities: [DNSRecord] = []
+        var authorities: [any DNSRecord] = []
         for _ in 0 ..< header.numberOfAuthorities {
             let record = try DNSRecordDecoder.decode(from: &byteBuffer)
             authorities.append(record)
         }
 
-        var resources: [DNSRecord] = []
+        var resources: [any DNSRecord] = []
         for _ in 0 ..< header.numberOfResources {
             let record = try DNSRecordDecoder.decode(from: &byteBuffer)
             resources.append(record)
@@ -64,33 +64,28 @@ extension DNSPacket {
 extension DNSPacket {
 
     enum EncoderError: LocalizedError {
-        case unencodableRecordFound(record: DNSRecord)
+        case unencodableRecordFound(record: any DNSRecord)
     }
 
-    public func encode() throws -> Data {
-        var byteBuffer = ByteBufferWriter()
+    public func encode(compressLabels: Bool = true) throws -> Data {
+        var byteBuffer: any ByteBufferWriting = compressLabels ? DNSPacketCompressor() : ByteBufferWriter()
 
         try header.encode(into: &byteBuffer)
 
         for query in queries {
             try query.encode(into: &byteBuffer)
         }
-
-        try encodeRecords(records, into: &byteBuffer)
-        try encodeRecords(authorities, into: &byteBuffer)
-        try encodeRecords(resources, into: &byteBuffer)
+        for record in records {
+            try record.encode(into: &byteBuffer)
+        }
+        for authority in authorities {
+            try authority.encode(into: &byteBuffer)
+        }
+        for resource in resources {
+            try resource.encode(into: &byteBuffer)
+        }
 
         return byteBuffer.data
-    }
-
-    private func encodeRecords(_ records: [DNSRecord], into byteBuffer: inout ByteBufferWriter) throws {
-        for record in records {
-            guard let encodableRecord = record as? DNSRecordEncodable else {
-                throw EncoderError.unencodableRecordFound(record: record)
-            }
-            try encodableRecord.encodeSharedValues(into: &byteBuffer)
-            try encodableRecord.encodeAdditionalData(into: &byteBuffer)
-        }
     }
 
 }

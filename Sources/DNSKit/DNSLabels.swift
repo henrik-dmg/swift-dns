@@ -35,7 +35,7 @@ public struct DNSLabels: Equatable, Sendable {
 
 extension DNSLabels: DNSPacketDecodable {
 
-    static func decode(from byteBuffer: inout ByteBufferReader) throws -> DNSLabels {
+    static func decode(from byteBuffer: inout ByteBufferReading) throws -> DNSLabels {
         var labels: [String] = []
 
         let initialPosition = byteBuffer.currentIndex
@@ -86,19 +86,8 @@ extension DNSLabels: DNSPacketDecodable {
 
 extension DNSLabels: DNSPacketEncodable {
 
-    func encode(into byteBuffer: inout ByteBufferWriter) throws {
-        for label in self.labels {
-            guard label.count < 63 else {
-                throw EncoderError.labelTooLong(label: label)
-            }
-            guard let labelData = label.data(using: .ascii) else {
-                throw EncoderError.cantEncodeLabel(label: label)
-            }
-            byteBuffer.write(UInt8(label.count))
-            byteBuffer.write(Array(labelData))
-        }
-        // Write single zero to signal termination of label sequence
-        byteBuffer.write(UInt8(0))
+    func encode(into byteBuffer: inout ByteBufferWriting) throws {
+        try byteBuffer.write(self)
     }
 
 }

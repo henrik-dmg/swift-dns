@@ -17,7 +17,7 @@ struct DNSHeaderTests {
     func query() throws {
         let path = try #require(Bundle.module.url(forResource: "query_packet", withExtension: "txt"))
         let data = try Data(contentsOf: path)
-        var byteBuffer = ByteBufferReader(data.prefix(12))
+        var byteBuffer: any ByteBufferReading = ByteBufferReader(data.prefix(12))
         let header = try DNSHeader.decode(from: &byteBuffer)
 
         #expect(header.numberOfQueries == 1)
@@ -29,7 +29,7 @@ struct DNSHeaderTests {
     func response() throws {
         let path = try #require(Bundle.module.url(forResource: "response_packet", withExtension: "txt"))
         let data = try Data(contentsOf: path)
-        var byteBuffer = ByteBufferReader(data.prefix(12))
+        var byteBuffer: any ByteBufferReading = ByteBufferReader(data.prefix(12))
         let header = try DNSHeader.decode(from: &byteBuffer)
 
         #expect(header.numberOfQueries == 1)

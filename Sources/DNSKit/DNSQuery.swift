@@ -5,7 +5,7 @@
 //  Created by Henrik Panhans on 25.07.24.
 //
 
-public struct DNSQuery {
+public struct DNSQuery: Equatable {
 
     public let labels: DNSLabels
     public let recordType: DNSRecordType
@@ -17,10 +17,10 @@ public struct DNSQuery {
 
 extension DNSQuery: DNSPacketDecodable {
 
-    public static func decode(from byteBuffer: inout ByteBufferReader) throws -> DNSQuery {
+    static func decode(from byteBuffer: inout ByteBufferReading) throws -> DNSQuery {
         DNSQuery(
             labels: try DNSLabels.decode(from: &byteBuffer),
-            recordType: DNSRecordType(rawValue: try byteBuffer.readUInt16()) ?? .unknown,
+            recordType: try DNSRecordType.decode(from: &byteBuffer),
             recordClass: try byteBuffer.readUInt16()
         )
     }
@@ -31,7 +31,7 @@ extension DNSQuery: DNSPacketDecodable {
 
 extension DNSQuery: DNSPacketEncodable {
 
-    func encode(into byteBuffer: inout ByteBufferWriter) throws {
+    func encode(into byteBuffer: inout ByteBufferWriting) throws {
         try labels.encode(into: &byteBuffer)
         byteBuffer.write(recordType.rawValue)
         byteBuffer.write(recordClass)

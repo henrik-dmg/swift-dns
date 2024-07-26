@@ -7,7 +7,16 @@
 
 import Foundation
 
-public struct ByteBufferReader: ByteBufferProtocol {
+public protocol ByteBufferReading: ByteBuffer {
+
+    mutating func readByte() throws -> UInt8
+    mutating func readUInt16() throws -> UInt16
+    mutating func readUInt32() throws -> UInt32
+    mutating func readBytes(_ count: Int) throws -> Data
+
+}
+
+struct ByteBufferReader: ByteBufferReading {
 
     // MARK: - Properties
 
@@ -16,11 +25,11 @@ public struct ByteBufferReader: ByteBufferProtocol {
 
     // MARK: - Init
 
-    public init(_ data: [UInt8]) {
+    init(_ data: [UInt8]) {
         self.data = Data(data)
     }
 
-    public init(_ data: Data) {
+    init(_ data: Data) {
         self.data = data
     }
 
