@@ -5,20 +5,17 @@
 //  Created by Henrik Panhans on 26.07.24.
 //
 
-public enum DNSRecordType: Sendable, Equatable {
+public enum DNSRecordType: Sendable, Equatable, CaseIterable {
 
     case unknown(UInt16)
-    case A(UInt16)
-    case AAAA(UInt16)
-    case NS(UInt16)
-    case CNAME(UInt16)
-    case MX(UInt16)
+    case A
+    case AAAA
+    case NS
+    case CNAME
+    case MX
 
-    var rawValue: UInt16 {
-        switch self {
-        case .unknown(let uInt16), .A(let uInt16), .NS(let uInt16), .CNAME(let uInt16), .MX(let uInt16), .AAAA(let uInt16):
-            return uInt16
-        }
+    public static var allCases: [DNSRecordType] {
+        [.unknown(0), .A, .AAAA, .NS, .CNAME, .MX]
     }
 
 }
@@ -29,14 +26,13 @@ extension DNSRecordType: DNSPacketDecodable {
 
     static func decode(from byteBuffer: inout any ByteBufferReading) throws -> Self {
         let integer = try byteBuffer.readUInt16()
-        switch integer {
-        case 1: return .A(integer)
-        case 2: return .NS(integer)
-        case 5: return .CNAME(integer)
-        case 15: return .MX(integer)
-        case 28: return .AAAA(integer)
-        default:
-            return .unknown(integer)
+        return switch integer {
+        case 1: .A
+        case 2: .NS
+        case 5: .CNAME
+        case 15: .MX
+        case 28: .AAAA
+        default: .unknown(integer)
         }
     }
 
@@ -47,7 +43,16 @@ extension DNSRecordType: DNSPacketDecodable {
 extension DNSRecordType: DNSPacketEncodable {
 
     func encode(into byteBuffer: inout any ByteBufferWriting) throws {
-        byteBuffer.write(rawValue)
+        let integerToEncode: UInt16 =
+            switch self {
+            case .unknown(let integer): integer
+            case .A: 1
+            case .AAAA: 28
+            case .NS: 2
+            case .CNAME: 5
+            case .MX: 15
+            }
+        byteBuffer.write(integerToEncode)
     }
 
 }

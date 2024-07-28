@@ -33,8 +33,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
-                lengthOfCustomData: lengthOfCustomData,
-                ipFragments: Array(customData)
+                address: IPv4Address(fragments: Array(customData))
             )
         case .AAAA:
             return DNSAAAARecord(
@@ -42,8 +41,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
-                lengthOfCustomData: lengthOfCustomData,
-                ipFragments: Array(customData)
+                address: IPv6Address(fragments: Array(customData))
             )
         case .NS:
             return DNSNSRecord(

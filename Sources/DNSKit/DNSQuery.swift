@@ -45,7 +45,7 @@ extension DNSQuery: DNSPacketEncodable {
 
     func encode(into byteBuffer: inout ByteBufferWriting) throws {
         try labels.encode(into: &byteBuffer)
-        byteBuffer.write(recordType.rawValue)
+        try recordType.encode(into: &byteBuffer)
         byteBuffer.write(recordClass)
     }
 

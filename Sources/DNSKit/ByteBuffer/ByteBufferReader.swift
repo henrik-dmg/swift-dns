@@ -41,11 +41,12 @@ struct ByteBufferReader: ByteBufferReading {
 
     mutating func readUInt16() throws -> UInt16 {
         let bytes = try readBytes(2)
-        return UInt16(bytes[0]) << 8 + UInt16(bytes[1])
+        return join(bytes[0], rhs: bytes[1])
     }
 
     mutating func readUInt32() throws -> UInt32 {
-        UInt32(try readUInt16()) << 16 + UInt32(try readUInt16())
+        let (lhs, rhs) = (try readUInt16(), try readUInt16())
+        return join(lhs, rhs: rhs)
     }
 
     mutating func readBytes(_ count: Int) throws -> Data {

@@ -45,9 +45,9 @@ struct DNSPacketTests {
         #expect(firstQuery.labels.labels == ["google", "com"])
 
         let firstRecord = try #require(packet.records.first as? DNSARecord)
-        #expect(firstRecord.recordType == .A(1))
+        #expect(firstRecord.recordType == .A)
         #expect(firstRecord.labels.labels == ["google", "com"])
-        #expect(firstRecord.ipFragments == [216, 58, 215, 78])
+        #expect(firstRecord.address.fragments == [216, 58, 215, 78])
     }
 
     // MARK: - Encoding
@@ -95,33 +95,30 @@ struct DNSPacketTests {
             numberOfResources: 0
         )
 
-        let dnsQuery1 = DNSQuery(labels: ["mail", "google", "com"], recordType: .A(1), recordClass: 1)
-        let dnsQuery2 = DNSQuery(labels: ["google", "com"], recordType: .A(1), recordClass: 1)
-        let dnsQuery3 = DNSQuery(labels: ["panhans", "dev"], recordType: .A(1), recordClass: 1)
+        let dnsQuery1 = DNSQuery(labels: ["mail", "google", "com"], recordType: .A, recordClass: 1)
+        let dnsQuery2 = DNSQuery(labels: ["google", "com"], recordType: .A, recordClass: 1)
+        let dnsQuery3 = DNSQuery(labels: ["panhans", "dev"], recordType: .A, recordClass: 1)
 
         let dnsRecord1 = DNSARecord(
             labels: DNSLabels(labels: ["mail", "google", "com"]),
-            recordType: .A(1),
+            recordType: .A,
             recordClass: 1,
             timeToLive: 100,
-            lengthOfCustomData: 4,
-            ipFragments: [192, 168, 178, 1]
+            address: IPv4Address(192, 168, 178, 1)
         )
         let dnsRecord2 = DNSARecord(
             labels: DNSLabels(labels: ["google", "com"]),
-            recordType: .A(1),
+            recordType: .A,
             recordClass: 1,
             timeToLive: 100,
-            lengthOfCustomData: 4,
-            ipFragments: [192, 168, 178, 2]
+            address: IPv4Address(192, 168, 178, 2)
         )
         let dnsRecord3 = DNSARecord(
             labels: DNSLabels(labels: ["panhans", "dev"]),
-            recordType: .A(1),
+            recordType: .A,
             recordClass: 1,
             timeToLive: 100,
-            lengthOfCustomData: 4,
-            ipFragments: [192, 168, 178, 3]
+            address: IPv4Address(192, 168, 178, 3)
         )
 
         let packet = DNSPacket(

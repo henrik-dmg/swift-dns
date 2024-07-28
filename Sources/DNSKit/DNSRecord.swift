@@ -30,7 +30,7 @@ extension DNSRecord {
 
     func encodeSharedValues(into buffer: inout ByteBufferWriting) throws {
         try labels.encode(into: &buffer)
-        buffer.write(recordType.rawValue)
+        try recordType.encode(into: &buffer)
         buffer.write(recordClass)
         buffer.write(timeToLive)
         buffer.write(lengthOfCustomData)
@@ -57,17 +57,48 @@ public struct DNSUnknownRecord: DNSRecord {
 
 // MARK: - A Record
 
-public struct DNSARecord: DNSRecord {
+public struct DNSARecord: DNSRecord, CustomDebugStringConvertible {
 
     public let labels: DNSLabels
     public let recordType: DNSRecordType
     public let recordClass: UInt16
     public let timeToLive: UInt32
-    public let lengthOfCustomData: UInt16
-    public let ipFragments: [UInt8]
+    public let address: IPv4Address
+
+    public var lengthOfCustomData: UInt16 {
+        4  // IPv4 addresses have 4 octets
+    }
 
     public func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
-        buffer.write(ipFragments)
+        try address.encode(into: &buffer)
+    }
+
+    public var debugDescription: String {
+        "A(\(labels.labels), class \(recordClass), TTL \(timeToLive), IP: \(address))"
+    }
+
+}
+
+// MARK: - AAAA Record
+
+public struct DNSAAAARecord: DNSRecord, CustomDebugStringConvertible {
+
+    public let labels: DNSLabels
+    public let recordType: DNSRecordType
+    public let recordClass: UInt16
+    public let timeToLive: UInt32
+    public let address: IPv6Address
+
+    public var lengthOfCustomData: UInt16 {
+        16  // IPv6 addresses have 16 octets
+    }
+
+    public func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
+        try address.encode(into: &buffer)
+    }
+
+    public var debugDescription: String {
+        "AAAA(\(labels.labels), class \(recordClass), TTL \(timeToLive), IP: \(address))"
     }
 
 }
@@ -121,23 +152,6 @@ public struct DNSMXRecord: DNSRecord {
     public func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
         buffer.write(priority)
         try paylodLabels.encode(into: &buffer)
-    }
-
-}
-
-// MARK: - AAAA Record
-
-public struct DNSAAAARecord: DNSRecord {
-
-    public let labels: DNSLabels
-    public let recordType: DNSRecordType
-    public let recordClass: UInt16
-    public let timeToLive: UInt32
-    public let lengthOfCustomData: UInt16
-    public let ipFragments: [UInt8]
-
-    public func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
-        buffer.write(ipFragments)
     }
 
 }
