@@ -81,9 +81,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 lengthOfString: lengthOfString,
                 content: content
             )
-        case .SOA:
-            fallthrough
-        case .unknown:
+        case .SOA, .unknown:
             return DNSUnknownRecord(
                 labels: labels,
                 recordType: recordType,
