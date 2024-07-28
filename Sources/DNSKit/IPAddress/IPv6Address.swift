@@ -5,7 +5,6 @@
 //  Created by Henrik Panhans on 26.07.24.
 //
 
-import Algorithms
 import Foundation
 
 public struct IPv6Address: IPAddress {
@@ -16,10 +15,15 @@ public struct IPv6Address: IPAddress {
 
     // MARK: - Init
 
-    init(fragments: [UInt8]) {
-        self.fragments = fragments.chunks(ofCount: 2).map { chunk in
-            join(chunk[chunk.startIndex], rhs: chunk[chunk.endIndex - 1])
+    init(fragments: [UInt8]) throws {
+        guard fragments.count == 16 else {
+            throw DecoderError.invalidIPv6Address(bytes: Data(fragments))
         }
+        var joinedFragments = [UInt16]()
+        for i in 0..<fragments.count where i % 2 == 0 {
+            joinedFragments.append(join(fragments[i], fragments[i + 1]))
+        }
+        self.fragments = joinedFragments
     }
 
     public init(

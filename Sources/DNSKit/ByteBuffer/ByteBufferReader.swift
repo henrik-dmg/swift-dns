@@ -41,19 +41,20 @@ struct ByteBufferReader: ByteBufferReading {
 
     mutating func readUInt16() throws -> UInt16 {
         let bytes = try readBytes(2)
-        return join(bytes[0], rhs: bytes[1])
+        return join(bytes[0], bytes[1])
     }
 
     mutating func readUInt32() throws -> UInt32 {
         let (lhs, rhs) = (try readUInt16(), try readUInt16())
-        return join(lhs, rhs: rhs)
+        return join(lhs, rhs)
     }
 
     mutating func readBytes(_ count: Int) throws -> Data {
-        guard let endIndex = data.index(currentIndex, offsetBy: count, limitedBy: data.endIndex) else {
+        guard let endIndex = data.index(currentIndex, offsetBy: count, limitedBy: data.endIndex)
+        else {
             throw ByteBufferError.indexOutOfBounds(currentIndex, data.endIndex)
         }
-        let subData = data.subdata(in: currentIndex ..< endIndex)
+        let subData = data.subdata(in: currentIndex..<endIndex)
         currentIndex = endIndex
         return subData
     }

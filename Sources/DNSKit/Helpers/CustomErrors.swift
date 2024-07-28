@@ -13,6 +13,7 @@ enum DecoderError: LocalizedError {
     case maximumNumberOfJumpsReached
     case cantReadRecordType(rawValue: UInt16)
     case cantReadResultCode(UInt8)
+    case invalidIPv6Address(bytes: Data)
 }
 
 enum EncoderError: LocalizedError {

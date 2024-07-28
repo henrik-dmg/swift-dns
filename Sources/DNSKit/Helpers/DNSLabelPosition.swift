@@ -30,32 +30,30 @@ struct DNSContinuousLabelPosition: Equatable {
 extension [DNSLabelPosition] {
 
     func continuousPositions() -> [DNSContinuousLabelPosition] {
-        var continuousGroups: [DNSContinuousLabelPosition] = []
-        var labelGroup: [DNSLabelPosition] = []
-
-        if count == 1 {
-            return [DNSContinuousLabelPosition(index: self[0].index, labels: [self[0].label])]
+        guard !isEmpty else {
+            return []
         }
 
-        for (lhs, rhs) in self.adjacentPairs() {
-            if let lastElement = labelGroup.last, lastElement == lhs {
-                // do nothing
-            } else {
-                labelGroup.append(lhs)
-            }
+        var continuousGroups: [DNSContinuousLabelPosition] = []
+        var labelGroup: [DNSLabelPosition] = [self[0]]
 
-            if lhs.areLabelsContinuous(nextLabel: rhs) {
-                labelGroup.append(rhs)
+        for position in dropFirst() {
+            guard let lastElement = labelGroup.last else {
                 continue
+            }
+            if lastElement.areLabelsContinuous(nextLabel: position) {
+                labelGroup.append(position)
             } else {
-                let continuousGroup = DNSContinuousLabelPosition(index: labelGroup[0].index, labels: labelGroup.map { $0.label })
+                let continuousGroup = DNSContinuousLabelPosition(
+                    index: labelGroup[0].index, labels: labelGroup.map { $0.label })
                 continuousGroups.append(continuousGroup)
-                labelGroup = [rhs]
+                labelGroup = [position]
             }
         }
 
         if !labelGroup.isEmpty {
-            let continuousGroup = DNSContinuousLabelPosition(index: labelGroup[0].index, labels: labelGroup.map { $0.label })
+            let continuousGroup = DNSContinuousLabelPosition(
+                index: labelGroup[0].index, labels: labelGroup.map { $0.label })
             continuousGroups.append(continuousGroup)
         }
 

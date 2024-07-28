@@ -35,7 +35,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
-                address: IPv6Address(fragments: Array(customData))
+                address: try IPv6Address(fragments: Array(customData))
             )
         case .NS:
             return DNSNSRecord(

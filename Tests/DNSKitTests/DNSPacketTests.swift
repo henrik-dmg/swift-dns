@@ -17,7 +17,8 @@ struct DNSPacketTests {
 
     @Test
     func decodeQueryPacket() throws {
-        let path = try #require(Bundle.module.url(forResource: "query_packet", withExtension: "txt"))
+        let path = try #require(
+            Bundle.module.url(forResource: "query_packet", withExtension: "txt"))
         let data = try Data(contentsOf: path)
         let packet = try DNSPacket.decode(from: data)
 
@@ -32,7 +33,8 @@ struct DNSPacketTests {
 
     @Test
     func decodeResponsePacket() throws {
-        let path = try #require(Bundle.module.url(forResource: "response_packet", withExtension: "txt"))
+        let path = try #require(
+            Bundle.module.url(forResource: "response_packet", withExtension: "txt"))
         let data = try Data(contentsOf: path)
         let packet = try DNSPacket.decode(from: data)
 
@@ -132,13 +134,6 @@ struct DNSPacketTests {
         let uncompressedPacketData = try packet.encode(compressLabels: false)
         let compressedPacketData = try packet.encode(compressLabels: true)
 
-        let parsedPacketFromUncompressed = try DNSPacket.decode(from: uncompressedPacketData)
-        let parsedPacketFromCompressed = try DNSPacket.decode(from: compressedPacketData)
-
-        print(parsedPacketFromUncompressed)
-        print(parsedPacketFromCompressed)
-
-        print(compressedPacketData.count, uncompressedPacketData.count)
         #expect(compressedPacketData.count < uncompressedPacketData.count)
     }
 
