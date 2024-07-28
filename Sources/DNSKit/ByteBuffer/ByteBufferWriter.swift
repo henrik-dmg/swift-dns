@@ -21,13 +21,6 @@ public protocol ByteBufferWriting: ByteBuffer {
 
 struct ByteBufferWriter: ByteBufferWriting {
 
-    // MARK: - Nested Types
-
-    enum EncoderError: LocalizedError {
-        case labelTooLong(label: String)
-        case cantEncodeLabel(label: String)
-    }
-
     // MARK: - Properties
 
     private(set) var data: Data

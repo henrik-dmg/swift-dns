@@ -13,9 +13,11 @@ public enum DNSRecordType: Sendable, Equatable, CaseIterable {
     case NS
     case CNAME
     case MX
+    case SOA
+    case TXT
 
     public static var allCases: [DNSRecordType] {
-        [.unknown(0), .A, .AAAA, .NS, .CNAME, .MX]
+        [.unknown(0), .A, .AAAA, .NS, .CNAME, .MX, .SOA, .TXT]
     }
 
 }
@@ -32,6 +34,8 @@ extension DNSRecordType: DNSPacketDecodable {
         case 5: .CNAME
         case 15: .MX
         case 28: .AAAA
+        case 6: .SOA
+        case 16: .TXT
         default: .unknown(integer)
         }
     }
@@ -51,6 +55,8 @@ extension DNSRecordType: DNSPacketEncodable {
             case .NS: 2
             case .CNAME: 5
             case .MX: 15
+            case .SOA: 6
+            case .TXT: 16
             }
         byteBuffer.write(integerToEncode)
     }

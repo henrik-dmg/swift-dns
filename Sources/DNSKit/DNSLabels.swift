@@ -9,19 +9,6 @@ import Foundation
 
 public struct DNSLabels: Equatable, Sendable {
 
-    // MARK: - Nested Types
-
-    enum DecoderError: LocalizedError {
-        case cantConvertToString(bytes: Data)
-        case noLabelsDecoded
-        case maximumNumberOfJumpsReached
-    }
-
-    enum EncoderError: LocalizedError {
-        case labelTooLong(label: String)
-        case cantEncodeLabel(label: String)
-    }
-
     // MARK: - Properties
 
     static let maxAllowedJumps = 5

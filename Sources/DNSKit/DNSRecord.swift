@@ -155,3 +155,25 @@ public struct DNSMXRecord: DNSRecord {
     }
 
 }
+
+// MARK: - TXT Record
+
+public struct DNSTXTRecord: DNSRecord {
+
+    public let labels: DNSLabels
+    public let recordType: DNSRecordType
+    public let recordClass: UInt16
+    public let timeToLive: UInt32
+    public let lengthOfCustomData: UInt16
+    public let lengthOfString: UInt8
+    public let content: String
+
+    public func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
+        buffer.write(lengthOfString)
+        guard let contentData = content.data(using: .ascii) else {
+            throw EncoderError.cantConvertStringToData(content)
+        }
+        buffer.write(contentData)
+    }
+
+}

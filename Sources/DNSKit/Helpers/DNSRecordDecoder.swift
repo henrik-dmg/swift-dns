@@ -7,13 +7,7 @@
 
 import Foundation
 
-struct DNSRecordDecoder {
-
-    enum DecodingError: LocalizedError {
-        case cantReadRecordType(rawValue: UInt16)
-    }
-
-}
+struct DNSRecordDecoder {}
 
 extension DNSRecordDecoder: DNSPacketDecodable {
 
@@ -71,6 +65,24 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 priority: try byteBuffer.readUInt16(),
                 paylodLabels: try DNSLabels.decode(from: &byteBuffer)
             )
+        case .TXT:
+            let lengthOfString = customData[0]
+            let contentData = customData.dropFirst()
+            guard let content = String(data: contentData, encoding: .ascii) else {
+                throw DecoderError.cantConvertToString(bytes: contentData)
+            }
+
+            return DNSTXTRecord(
+                labels: labels,
+                recordType: recordType,
+                recordClass: recordClass,
+                timeToLive: timeToLive,
+                lengthOfCustomData: lengthOfCustomData,
+                lengthOfString: lengthOfString,
+                content: content
+            )
+        case .SOA:
+            fallthrough
         case .unknown:
             return DNSUnknownRecord(
                 labels: labels,

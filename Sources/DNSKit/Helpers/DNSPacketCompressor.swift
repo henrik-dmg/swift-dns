@@ -12,27 +12,6 @@ import Foundation
 
 struct DNSPacketCompressor: ByteBufferWriting {
 
-    // MARK: - Nested Types
-
-    enum EncoderError: LocalizedError {
-
-        case labelTooLong(label: String)
-        case cantEncodeLabel(label: String)
-        case didNotWriteJumpDirectiveLast
-
-        var errorDescription: String? {
-            switch self {
-            case .labelTooLong(let label):
-                "Label \"\(label)\" is too long"
-            case .cantEncodeLabel(let label):
-                "Can't connect label \"\(label)\" to ASCII"
-            case .didNotWriteJumpDirectiveLast:
-                "Compressor did not write jump directive last, this shouldn't happen"
-            }
-        }
-
-    }
-
     // MARK: - Properties
 
     var byteBuffer: ByteBufferWriter

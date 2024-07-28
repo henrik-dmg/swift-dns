@@ -31,12 +31,6 @@ import Foundation
 
 public struct DNSHeader: Equatable {
 
-    // MARK: - Nested Types
-
-    enum DecodingError: LocalizedError {
-        case cantReadResultCode(UInt8)
-    }
-
     // MARK: - Properties
 
     public let id: UInt16
@@ -103,7 +97,7 @@ extension DNSHeader: DNSPacketDecodable {
         let numberOfResources = try byteBuffer.readUInt16()
 
         guard let resultCode else {
-            throw DecodingError.cantReadResultCode(flagsB & 0x0F)
+            throw DecoderError.cantReadResultCode(flagsB & 0x0F)
         }
 
         return DNSHeader(

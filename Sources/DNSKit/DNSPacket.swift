@@ -63,10 +63,6 @@ extension DNSPacket {
 
 extension DNSPacket {
 
-    enum EncoderError: LocalizedError {
-        case unencodableRecordFound(record: any DNSRecord)
-    }
-
     public func encode(compressLabels: Bool = true) throws -> Data {
         var byteBuffer: any ByteBufferWriting = compressLabels ? DNSPacketCompressor() : ByteBufferWriter()
 
