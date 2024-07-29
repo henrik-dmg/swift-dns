@@ -7,7 +7,6 @@
 
 // This is gonna be the most big-brain shit I'll ever do
 
-import Algorithms
 import Foundation
 
 struct DNSPacketCompressor: ByteBufferWriting {
