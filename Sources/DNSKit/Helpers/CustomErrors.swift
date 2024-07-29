@@ -8,12 +8,31 @@
 import Foundation
 
 enum DecoderError: LocalizedError {
+
     case cantConvertToString(bytes: Data)
     case noLabelsDecoded
     case maximumNumberOfJumpsReached
     case cantReadRecordType(rawValue: UInt16)
     case cantReadResultCode(UInt8)
     case invalidIPv6Address(bytes: Data)
+
+    var errorDescription: String? {
+        switch self {
+        case .cantConvertToString(let bytes):
+            "Can't convert bytes \(bytes.hexEncodedString()) to string"
+        case .noLabelsDecoded:
+            "No labels were decoded"
+        case .maximumNumberOfJumpsReached:
+            "Maximum number of jumps reached"
+        case .cantReadRecordType(let rawValue):
+            "Can't read record type \(rawValue)"
+        case .cantReadResultCode(let uInt8):
+            "Can't read result code \(uInt8)"
+        case .invalidIPv6Address(let bytes):
+            "Invalid IPv6 address \(bytes.hexEncodedString())"
+        }
+    }
+
 }
 
 enum EncoderError: LocalizedError {

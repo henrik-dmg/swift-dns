@@ -45,10 +45,10 @@ extension DNSQuery: DNSPacketDecodable {
 
 extension DNSQuery: DNSPacketEncodable {
 
-    func encode(into byteBuffer: inout ByteBufferWriting) throws {
-        try labels.encode(into: &byteBuffer)
-        try recordType.encode(into: &byteBuffer)
-        byteBuffer.write(recordClass)
+    func encode(into buffer: inout ByteBufferWriting) throws {
+        try buffer.write(labels)
+        try recordType.encode(into: &buffer)
+        buffer.write(recordClass)
     }
 
 }

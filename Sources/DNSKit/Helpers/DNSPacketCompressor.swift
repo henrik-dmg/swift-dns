@@ -20,8 +20,7 @@ struct DNSPacketCompressor: ByteBufferWriting {
     }
 
     var currentIndex: Data.Index {
-        get { byteBuffer.currentIndex }
-        set { byteBuffer.currentIndex = newValue }
+        byteBuffer.currentIndex
     }
 
     private var labelPositions: [DNSLabelPosition] = []

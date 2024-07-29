@@ -29,7 +29,7 @@ extension DNSRecord {
     }
 
     func encodeSharedValues(into buffer: inout ByteBufferWriting) throws {
-        try labels.encode(into: &buffer)
+        try buffer.write(labels)
         try recordType.encode(into: &buffer)
         buffer.write(recordClass)
         buffer.write(timeToLive)
@@ -115,7 +115,7 @@ public struct DNSNSRecord: DNSRecord {
     public let paylodLabels: DNSLabels
 
     public func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
-        try paylodLabels.encode(into: &buffer)
+        try buffer.write(paylodLabels)
     }
 
 }
@@ -132,7 +132,7 @@ public struct DNSCNAMERecord: DNSRecord {
     public let paylodLabels: DNSLabels
 
     public func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
-        try paylodLabels.encode(into: &buffer)
+        try buffer.write(paylodLabels)
     }
 
 }
@@ -151,7 +151,7 @@ public struct DNSMXRecord: DNSRecord {
 
     public func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
         buffer.write(priority)
-        try paylodLabels.encode(into: &buffer)
+        try buffer.write(paylodLabels)
     }
 
 }
@@ -164,12 +164,14 @@ public struct DNSTXTRecord: DNSRecord {
     public let recordType: DNSRecordType
     public let recordClass: UInt16
     public let timeToLive: UInt32
-    public let lengthOfCustomData: UInt16
-    public let lengthOfString: UInt8
     public let content: String
 
+    public var lengthOfCustomData: UInt16 {
+        UInt16(content.count) + 1 // + 1 because one byte is added to define the length of the following string
+    }
+
     public func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
-        buffer.write(lengthOfString)
+        buffer.write(UInt8(content.count))
         guard let contentData = content.data(using: .ascii) else {
             throw EncoderError.cantConvertStringToData(content)
         }

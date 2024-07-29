@@ -25,6 +25,8 @@ extension DNSLabels: DNSPacketDecodable {
     static func decode(from byteBuffer: inout ByteBufferReading) throws -> DNSLabels {
         var labels: [String] = []
 
+        print("Decoding labels from:", byteBuffer.data.dropFirst(byteBuffer.currentIndex).hexEncodedString())
+
         let initialPosition = byteBuffer.currentIndex
         var hasJumped = false
         var jumpsPerformed = 0
@@ -65,16 +67,6 @@ extension DNSLabels: DNSPacketDecodable {
         }
 
         return DNSLabels(labels: labels)
-    }
-
-}
-
-// MARK: - Encoding
-
-extension DNSLabels: DNSPacketEncodable {
-
-    func encode(into byteBuffer: inout ByteBufferWriting) throws {
-        try byteBuffer.write(self)
     }
 
 }

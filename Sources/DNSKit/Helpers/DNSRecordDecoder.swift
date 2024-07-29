@@ -68,7 +68,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
         case .TXT:
             let lengthOfString = customData[0]
             let contentData = customData.dropFirst()
-            guard let content = String(data: contentData, encoding: .ascii) else {
+            guard let content = String(data: contentData, encoding: .ascii), content.count == Int(lengthOfString) else {
                 throw DecoderError.cantConvertToString(bytes: contentData)
             }
 
@@ -77,8 +77,6 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
-                lengthOfCustomData: lengthOfCustomData,
-                lengthOfString: lengthOfString,
                 content: content
             )
         case .SOA, .unknown:

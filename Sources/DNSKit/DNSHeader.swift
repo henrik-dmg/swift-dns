@@ -29,7 +29,7 @@ import Foundation
 //    pub resource_entries: u16,      // 16 bits
 //}
 
-public struct DNSHeader: Equatable {
+public struct DNSHeader: Equatable, Sendable {
 
     // MARK: - Properties
 
@@ -74,27 +74,27 @@ extension DNSHeader: DNSPacketDecodable {
      | NSCOUNT  | Authority Count      | 16 bits            |
      | ARCOUNT  | Additional Count     | 16 bits            |
      */
-    static func decode(from byteBuffer: inout ByteBufferReading) throws -> DNSHeader {
-        let id = try byteBuffer.readUInt16()
+    static func decode(from buffer: inout ByteBufferReading) throws -> DNSHeader {
+        let id = try buffer.readUInt16()
 
-        let flagsA = try byteBuffer.readByte()
+        let flagsA = try buffer.readByte()
         let isRecursionDesired = (flagsA & (1 << 0)) > 0
         let isMessageTruncated = (flagsA & (1 << 1)) > 0
         let isAnswerAuthorative = (flagsA & (1 << 2)) > 0
         let opCode = (flagsA >> 3) & 0x0F
         let isResponse = (flagsA & (1 << 7)) > 0
 
-        let flagsB = try byteBuffer.readByte()
+        let flagsB = try buffer.readByte()
         let resultCode = DNSResultCode(rawValue: flagsB & 0x0F)
         let isCheckingDisabled = (flagsB & (1 << 4)) > 0
         let isAuthedData = (flagsB & (1 << 5)) > 0
         let z = (flagsB & (1 << 6)) > 0
         let isRecursionAvailable = (flagsB & (1 << 7)) > 0
 
-        let numberOfQueries = try byteBuffer.readUInt16()
-        let numberOfRecords = try byteBuffer.readUInt16()
-        let numberOfAuthorities = try byteBuffer.readUInt16()
-        let numberOfResources = try byteBuffer.readUInt16()
+        let numberOfQueries = try buffer.readUInt16()
+        let numberOfRecords = try buffer.readUInt16()
+        let numberOfAuthorities = try buffer.readUInt16()
+        let numberOfResources = try buffer.readUInt16()
 
         guard let resultCode else {
             throw DecoderError.cantReadResultCode(flagsB & 0x0F)
@@ -125,8 +125,8 @@ extension DNSHeader: DNSPacketDecodable {
 
 extension DNSHeader: DNSPacketEncodable {
 
-    func encode(into byteBuffer: inout ByteBufferWriting) throws {
-        byteBuffer.write(id)
+    func encode(into buffer: inout ByteBufferWriting) throws {
+        buffer.write(id)
 
         let flagA =
             UInt8(isRecursionDesired ? 1 : 0)
@@ -134,7 +134,7 @@ extension DNSHeader: DNSPacketEncodable {
             | (UInt8(isAnswerAuthorative ? 1 : 0) << 2)
             | (opCode << 3)
             | (UInt8(isResponse ? 1 : 0) << 7)
-        byteBuffer.write(flagA)
+        buffer.write(flagA)
 
         let flagB =
             resultCode.rawValue
@@ -142,12 +142,12 @@ extension DNSHeader: DNSPacketEncodable {
             | (UInt8(isAuthedData ? 1 : 0) << 5)
             | (UInt8(z ? 1 : 0) << 6)
             | (UInt8(isRecursionAvailable ? 1 : 0) << 7)
-        byteBuffer.write(flagB)
+        buffer.write(flagB)
 
-        byteBuffer.write(numberOfQueries)
-        byteBuffer.write(numberOfRecords)
-        byteBuffer.write(numberOfAuthorities)
-        byteBuffer.write(numberOfResources)
+        buffer.write(numberOfQueries)
+        buffer.write(numberOfRecords)
+        buffer.write(numberOfAuthorities)
+        buffer.write(numberOfResources)
 
     }
 

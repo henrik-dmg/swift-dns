@@ -24,9 +24,9 @@ struct ByteBufferWriter: ByteBufferWriting {
     // MARK: - Properties
 
     private(set) var data: Data
+
     var currentIndex: Data.Index {
-        get { data.endIndex }
-        set {}
+        data.endIndex
     }
 
     // MARK: - Init

@@ -5,7 +5,7 @@
 //  Created by Henrik Panhans on 25.07.24.
 //
 
-public enum DNSResultCode: UInt8 {
+public enum DNSResultCode: UInt8, Sendable {
     case NOERROR = 0
     case FORMERR = 1
     case SERVFAIL = 2

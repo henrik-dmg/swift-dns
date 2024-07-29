@@ -7,12 +7,27 @@
 
 import Foundation
 
-public protocol ByteBufferReading: ByteBuffer {
+protocol ByteBufferReading: ByteBuffer {
+
+    var currentIndex: Data.Index { get set }
+
+    mutating func seek(_ index: Data.Index) throws
 
     mutating func readByte() throws -> UInt8
     mutating func readUInt16() throws -> UInt16
     mutating func readUInt32() throws -> UInt32
     mutating func readBytes(_ count: Int) throws -> Data
+
+}
+
+extension ByteBufferReading {
+
+    mutating func seek(_ index: Data.Index) throws {
+        guard data.indices.contains(index) else {
+            throw ByteBufferError.indexOutOfBounds(index, data.endIndex)
+        }
+        currentIndex = index
+    }
 
 }
 

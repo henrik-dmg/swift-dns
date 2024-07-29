@@ -59,10 +59,12 @@ struct DNSPacketTests {
         "query_packet_big",
         "query_packet_aaaa",
         "query_packet_mixed",
+        "query_packet_txt",
         "response_packet",
         "response_packet_big",
         "response_packet_aaaa",
         "response_packet_mixed",
+        "response_packet_txt",
     ])
     func encodePacket(packetName: String) throws {
         let path = try #require(Bundle.module.url(forResource: packetName, withExtension: "txt"))
@@ -71,6 +73,7 @@ struct DNSPacketTests {
         let encodedPacket = try packet.encode(compressLabels: true)
 
         #expect(encodedPacket == data)
+        print(packet.records)
         if encodedPacket != data {
             print(data.hexEncodedString(options: .upperCase))
             print(encodedPacket.hexEncodedString(options: .upperCase))
@@ -79,24 +82,6 @@ struct DNSPacketTests {
 
     @Test
     func encodeCustomPackage() throws {
-        let header = DNSHeader(
-            id: 599,
-            isRecursionDesired: false,
-            isMessageTruncated: false,
-            isAnswerAuthorative: true,
-            opCode: 1,
-            isResponse: true,
-            resultCode: .NOERROR,
-            isCheckingDisabled: false,
-            isAuthedData: true,
-            z: false,
-            isRecursionAvailable: true,
-            numberOfQueries: 3,
-            numberOfRecords: 3,
-            numberOfAuthorities: 0,
-            numberOfResources: 0
-        )
-
         let dnsQuery1 = DNSQuery(labels: ["mail", "google", "com"], recordType: .A, recordClass: 1)
         let dnsQuery2 = DNSQuery(labels: ["google", "com"], recordType: .A, recordClass: 1)
         let dnsQuery3 = DNSQuery(labels: ["panhans", "dev"], recordType: .A, recordClass: 1)
@@ -124,7 +109,7 @@ struct DNSPacketTests {
         )
 
         let packet = DNSPacket(
-            header: header,
+            header: .mockHeader,
             queries: [dnsQuery1, dnsQuery2, dnsQuery3],
             records: [dnsRecord1, dnsRecord2, dnsRecord3],
             authorities: [],
@@ -134,7 +119,77 @@ struct DNSPacketTests {
         let uncompressedPacketData = try packet.encode(compressLabels: false)
         let compressedPacketData = try packet.encode(compressLabels: true)
 
+        // Should be smaller because google.com occurs multiple times in the packet,
+        // so with compression it should not be written multiple times but rather use a jump directive.
         #expect(compressedPacketData.count < uncompressedPacketData.count)
+
+        let uncompressedDecodedPacket = try DNSPacket.decode(from: uncompressedPacketData)
+        let compressedDecodedPacket = try DNSPacket.decode(from: compressedPacketData)
+
+        #expect(uncompressedDecodedPacket == compressedDecodedPacket)
     }
+
+    @Test
+    func packetsAreEqual() {
+        let dnsQuery1 = DNSQuery(labels: ["mail", "google", "com"], recordType: .A, recordClass: 1)
+
+        let dnsRecord1 = DNSARecord(
+            labels: DNSLabels(labels: ["mail", "google", "com"]),
+            recordType: .A,
+            recordClass: 1,
+            timeToLive: 100,
+            address: IPv4Address(192, 168, 178, 1)
+        )
+
+        let packet1 = DNSPacket(header: .mockHeader, queries: [dnsQuery1], records: [dnsRecord1], authorities: [], resources: [])
+        let packet2 = DNSPacket(header: .mockHeader, queries: [dnsQuery1], records: [dnsRecord1], authorities: [], resources: [])
+
+        #expect(packet1 == packet2)
+    }
+
+    @Test
+    func packetsAreNotEqual() {
+        let dnsRecord1 = DNSARecord(
+            labels: DNSLabels(labels: ["mail", "google", "com"]),
+            recordType: .A,
+            recordClass: 1,
+            timeToLive: 100,
+            address: IPv4Address(192, 168, 178, 1)
+        )
+        let dnsRecord2 = DNSARecord(
+            labels: DNSLabels(labels: ["google", "com"]),
+            recordType: .A,
+            recordClass: 1,
+            timeToLive: 100,
+            address: IPv4Address(192, 168, 178, 2)
+        )
+
+        let packet1 = DNSPacket(header: .mockHeader, queries: [], records: [dnsRecord1, dnsRecord2], authorities: [], resources: [])
+        let packet2 = DNSPacket(header: .mockHeader, queries: [], records: [dnsRecord2, dnsRecord1], authorities: [], resources: [])
+
+        #expect(packet1 != packet2)
+    }
+
+}
+
+extension DNSHeader {
+
+    static let mockHeader = DNSHeader(
+        id: 599,
+        isRecursionDesired: false,
+        isMessageTruncated: false,
+        isAnswerAuthorative: true,
+        opCode: 1,
+        isResponse: true,
+        resultCode: .NOERROR,
+        isCheckingDisabled: false,
+        isAuthedData: true,
+        z: false,
+        isRecursionAvailable: true,
+        numberOfQueries: 3,
+        numberOfRecords: 3,
+        numberOfAuthorities: 0,
+        numberOfResources: 0
+    )
 
 }
