@@ -14,7 +14,7 @@ public struct DNSLabels: Equatable, Sendable {
     static let maxAllowedJumps = 5
     static let jumpDirective: UInt8 = 0xC0
 
-    public let labels: [String]
+    public var labels: [String]
 
 }
 
@@ -24,8 +24,6 @@ extension DNSLabels: DNSPacketDecodable {
 
     static func decode(from byteBuffer: inout ByteBufferReading) throws -> DNSLabels {
         var labels: [String] = []
-
-        print("Decoding labels from:", byteBuffer.data.dropFirst(byteBuffer.currentIndex).hexEncodedString())
 
         let initialPosition = byteBuffer.currentIndex
         var hasJumped = false

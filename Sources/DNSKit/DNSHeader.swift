@@ -7,49 +7,25 @@
 
 import Foundation
 
-//#[derive(Clone, Debug)]
-//pub struct DnsHeader {
-//    pub id: u16, // 16 bits
-//
-//    pub recursion_desired: bool,    // 1 bit
-//    pub truncated_message: bool,    // 1 bit
-//    pub authoritative_answer: bool, // 1 bit
-//    pub opcode: u8,                 // 4 bits
-//    pub response: bool,             // 1 bit
-//
-//    pub rescode: ResultCode,       // 4 bits
-//    pub checking_disabled: bool,   // 1 bit
-//    pub authed_data: bool,         // 1 bit
-//    pub z: bool,                   // 1 bit
-//    pub recursion_available: bool, // 1 bit
-//
-//    pub questions: u16,             // 16 bits
-//    pub answers: u16,               // 16 bits
-//    pub authoritative_entries: u16, // 16 bits
-//    pub resource_entries: u16,      // 16 bits
-//}
-
 public struct DNSHeader: Equatable, Sendable {
 
-    // MARK: - Properties
+    public var id: UInt16
+    public var isRecursionDesired: Bool
+    public var isMessageTruncated: Bool
+    public var isAnswerAuthorative: Bool
+    public var opCode: UInt8
+    public var isResponse: Bool
 
-    public let id: UInt16
-    public let isRecursionDesired: Bool
-    public let isMessageTruncated: Bool
-    public let isAnswerAuthorative: Bool
-    public let opCode: UInt8
-    public let isResponse: Bool
+    public var resultCode: DNSResultCode
+    public var isCheckingDisabled: Bool
+    public var isAuthedData: Bool
+    public var z: Bool  // I dont know what this is
+    public var isRecursionAvailable: Bool
 
-    public let resultCode: DNSResultCode
-    public let isCheckingDisabled: Bool
-    public let isAuthedData: Bool
-    public let z: Bool  // I dont know what this is
-    public let isRecursionAvailable: Bool
-
-    public let numberOfQueries: UInt16
-    public let numberOfRecords: UInt16
-    public let numberOfAuthorities: UInt16
-    public let numberOfResources: UInt16
+    public var numberOfQueries: UInt16
+    public var numberOfRecords: UInt16
+    public var numberOfAuthorities: UInt16
+    public var numberOfResources: UInt16
 
 }
 

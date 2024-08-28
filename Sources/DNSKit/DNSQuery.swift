@@ -9,8 +9,8 @@ public struct DNSQuery: Equatable {
 
     // MARK: - Properties
 
-    public let labels: DNSLabels
-    public let recordType: DNSRecordType
+    public var labels: DNSLabels
+    public var recordType: DNSRecordType
     public let recordClass: UInt16
 
     // MARK: - Init

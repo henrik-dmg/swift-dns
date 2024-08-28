@@ -9,11 +9,11 @@ import Foundation
 
 public struct DNSPacket {
 
-    public let header: DNSHeader
-    public let queries: [DNSQuery]
-    public let records: [any DNSRecord]
-    public let authorities: [any DNSRecord]
-    public let resources: [any DNSRecord]
+    public var header: DNSHeader
+    public var queries: [DNSQuery]
+    public var records: [any DNSRecord]
+    public var authorities: [any DNSRecord]
+    public var resources: [any DNSRecord]
 
 }
 
@@ -31,32 +31,25 @@ extension DNSPacket {
         print(header)
 
         var queries: [DNSQuery] = []
-        print("Decoding \(header.numberOfQueries) queries")
         for _ in 0 ..< header.numberOfQueries {
             let query = try DNSQuery.decode(from: &byteBuffer)
             queries.append(query)
         }
 
         var records: [any DNSRecord] = []
-        print("Decoding \(header.numberOfRecords) records")
         for _ in 0 ..< header.numberOfRecords {
-            print("Decoding record")
             let record = try DNSRecordDecoder.decode(from: &byteBuffer)
             records.append(record)
         }
 
         var authorities: [any DNSRecord] = []
-        print("Decoding \(header.numberOfAuthorities) authorities")
         for _ in 0 ..< header.numberOfAuthorities {
-            print("Decoding authority")
             let record = try DNSRecordDecoder.decode(from: &byteBuffer)
             authorities.append(record)
         }
 
         var resources: [any DNSRecord] = []
-        print("Decoding \(header.numberOfResources) resources")
         for _ in 0 ..< header.numberOfResources {
-            print("Decoding resource")
             let record = try DNSRecordDecoder.decode(from: &byteBuffer)
             resources.append(record)
         }
