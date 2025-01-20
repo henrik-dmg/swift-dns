@@ -45,7 +45,9 @@ extension [DNSLabelPosition] {
                 labelGroup.append(position)
             } else {
                 let continuousGroup = DNSContinuousLabelPosition(
-                    index: labelGroup[0].index, labels: labelGroup.map { $0.label })
+                    index: labelGroup[0].index,
+                    labels: labelGroup.map { $0.label }
+                )
                 continuousGroups.append(continuousGroup)
                 labelGroup = [position]
             }
@@ -53,7 +55,9 @@ extension [DNSLabelPosition] {
 
         if !labelGroup.isEmpty {
             let continuousGroup = DNSContinuousLabelPosition(
-                index: labelGroup[0].index, labels: labelGroup.map { $0.label })
+                index: labelGroup[0].index,
+                labels: labelGroup.map { $0.label }
+            )
             continuousGroups.append(continuousGroup)
         }
 

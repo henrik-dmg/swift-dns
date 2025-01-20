@@ -1,4 +1,4 @@
-// swift-tools-version: 5.10
+// swift-tools-version: 6.0
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -6,14 +6,13 @@ import PackageDescription
 let package = Package(
     name: "swift-dns",
     platforms: [
-        .macOS(.v12)
+        .macOS(.v12),
+        .iOS(.v16),
     ],
     products: [
         .library(name: "DNSKit", targets: ["DNSKit"])
     ],
-    dependencies: [
-//        .package(url: "https://github.com/apple/swift-testing.git", from: "0.10.0")
-    ],
+    dependencies: [],
     targets: [
         .target(
             name: "DNSKit",
@@ -22,8 +21,7 @@ let package = Package(
         .testTarget(
             name: "DNSKitTests",
             dependencies: [
-                "DNSKit",
-//                .product(name: "Testing", package: "swift-testing"),
+                "DNSKit"
             ],
             resources: [
                 .process("Resources")

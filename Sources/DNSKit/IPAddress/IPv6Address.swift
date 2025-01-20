@@ -19,8 +19,8 @@ public struct IPv6Address: IPAddress {
         guard fragments.count == 16 else {
             throw DecoderError.invalidIPv6Address(bytes: Data(fragments))
         }
-        var joinedFragments = [UInt16]()
-        for i in 0..<fragments.count where i % 2 == 0 {
+        var joinedFragments: [UInt16] = []
+        for i in 0 ..< fragments.count where i % 2 == 0 {
             joinedFragments.append(join(fragments[i], fragments[i + 1]))
         }
         self.fragments = joinedFragments

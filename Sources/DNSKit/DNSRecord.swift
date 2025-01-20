@@ -167,7 +167,7 @@ public struct DNSTXTRecord: DNSRecord {
     public let content: String
 
     public var lengthOfCustomData: UInt16 {
-        UInt16(content.count) + 1 // + 1 because one byte is added to define the length of the following string
+        UInt16(content.count) + 1  // + 1 because one byte is added to define the length of the following string
     }
 
     public func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {

@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import OSLog
 
 public struct DNSPacket {
 
@@ -55,7 +56,7 @@ extension DNSPacket {
         }
 
         if byteBuffer.currentIndex < data.count {
-            print("ByteBuffer has parsed \(byteBuffer.currentIndex)/\(data.count) bytes")
+            Logger.dns.debug("ByteBuffer has parsed \(byteBuffer.currentIndex)/\(data.count) bytes")
         }
 
         return DNSPacket(header: header, queries: queries, records: records, authorities: authorities, resources: resources)

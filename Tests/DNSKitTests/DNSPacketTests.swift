@@ -18,7 +18,8 @@ struct DNSPacketTests {
     @Test
     func decodeQueryPacket() throws {
         let path = try #require(
-            Bundle.module.url(forResource: "query_packet", withExtension: "txt"))
+            Bundle.module.url(forResource: "query_packet", withExtension: "txt")
+        )
         let data = try Data(contentsOf: path)
         let packet = try DNSPacket.decode(from: data)
 
@@ -34,7 +35,8 @@ struct DNSPacketTests {
     @Test
     func decodeResponsePacket() throws {
         let path = try #require(
-            Bundle.module.url(forResource: "response_packet", withExtension: "txt"))
+            Bundle.module.url(forResource: "response_packet", withExtension: "txt")
+        )
         let data = try Data(contentsOf: path)
         let packet = try DNSPacket.decode(from: data)
 
@@ -109,7 +111,7 @@ struct DNSPacketTests {
         )
 
         let packet = DNSPacket(
-            header: .mockHeader,
+            header: .mock,
             queries: [dnsQuery1, dnsQuery2, dnsQuery3],
             records: [dnsRecord1, dnsRecord2, dnsRecord3],
             authorities: [],
@@ -141,8 +143,8 @@ struct DNSPacketTests {
             address: IPv4Address(192, 168, 178, 1)
         )
 
-        let packet1 = DNSPacket(header: .mockHeader, queries: [dnsQuery1], records: [dnsRecord1], authorities: [], resources: [])
-        let packet2 = DNSPacket(header: .mockHeader, queries: [dnsQuery1], records: [dnsRecord1], authorities: [], resources: [])
+        let packet1 = DNSPacket(header: .mock, queries: [dnsQuery1], records: [dnsRecord1], authorities: [], resources: [])
+        let packet2 = DNSPacket(header: .mock, queries: [dnsQuery1], records: [dnsRecord1], authorities: [], resources: [])
 
         #expect(packet1 == packet2)
     }
@@ -164,8 +166,8 @@ struct DNSPacketTests {
             address: IPv4Address(192, 168, 178, 2)
         )
 
-        let packet1 = DNSPacket(header: .mockHeader, queries: [], records: [dnsRecord1, dnsRecord2], authorities: [], resources: [])
-        let packet2 = DNSPacket(header: .mockHeader, queries: [], records: [dnsRecord2, dnsRecord1], authorities: [], resources: [])
+        let packet1 = DNSPacket(header: .mock, queries: [], records: [dnsRecord1, dnsRecord2], authorities: [], resources: [])
+        let packet2 = DNSPacket(header: .mock, queries: [], records: [dnsRecord2, dnsRecord1], authorities: [], resources: [])
 
         #expect(packet1 != packet2)
     }
@@ -174,7 +176,7 @@ struct DNSPacketTests {
 
 extension DNSHeader {
 
-    static let mockHeader = DNSHeader(
+    static let mock = DNSHeader(
         id: 599,
         isRecursionDesired: false,
         isMessageTruncated: false,

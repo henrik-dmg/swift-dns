@@ -33,23 +33,21 @@ public struct DNSHeader: Equatable, Sendable {
 
 extension DNSHeader: DNSPacketDecodable {
 
-    /*
-     | RFC Name | Descriptive Name     | Length             |
-     | -------- | -------------------- | ------------------ |
-     | ID       | Packet Identifier    | 16 bits            |
-     | QR       | Query Response       | 1 bit              |
-     | OPCODE   | Operation Code       | 4 bits             |
-     | AA       | Authoritative Answer | 1 bit              |
-     | TC       | Truncated Message    | 1 bit              |
-     | RD       | Recursion Desired    | 1 bit              |
-     | RA       | Recursion Available  | 1 bit              |
-     | Z        | Reserved             | 3 bits             |
-     | RCODE    | Response Code        | 4 bits             |
-     | QDCOUNT  | Question Count       | 16 bits            |
-     | ANCOUNT  | Answer Count         | 16 bits            |
-     | NSCOUNT  | Authority Count      | 16 bits            |
-     | ARCOUNT  | Additional Count     | 16 bits            |
-     */
+    //  | RFC Name | Descriptive Name     | Length             |
+    //  | -------- | -------------------- | ------------------ |
+    //  | ID       | Packet Identifier    | 16 bits            |
+    //  | QR       | Query Response       | 1 bit              |
+    //  | OPCODE   | Operation Code       | 4 bits             |
+    //  | AA       | Authoritative Answer | 1 bit              |
+    //  | TC       | Truncated Message    | 1 bit              |
+    //  | RD       | Recursion Desired    | 1 bit              |
+    //  | RA       | Recursion Available  | 1 bit              |
+    //  | Z        | Reserved             | 3 bits             |
+    //  | RCODE    | Response Code        | 4 bits             |
+    //  | QDCOUNT  | Question Count       | 16 bits            |
+    //  | ANCOUNT  | Answer Count         | 16 bits            |
+    //  | NSCOUNT  | Authority Count      | 16 bits            |
+    //  | ARCOUNT  | Additional Count     | 16 bits            |
     static func decode(from buffer: inout ByteBufferReading) throws -> DNSHeader {
         let id = try buffer.readUInt16()
 
