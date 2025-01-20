@@ -5,6 +5,7 @@
 //  Created by Henrik Panhans on 26.07.24.
 //
 
+// swift-format-ignore: AlwaysUseLowerCamelCase
 public enum DNSRecordType: Sendable, Equatable, CaseIterable {
 
     case unknown(UInt16)
