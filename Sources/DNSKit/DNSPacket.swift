@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import OSLog
+import Logging
 
 public struct DNSPacket {
 
@@ -32,25 +32,25 @@ extension DNSPacket {
         print(header)
 
         var queries: [DNSQuery] = []
-        for _ in 0 ..< header.numberOfQueries {
+        for _ in 0..<header.numberOfQueries {
             let query = try DNSQuery.decode(from: &byteBuffer)
             queries.append(query)
         }
 
         var records: [any DNSRecord] = []
-        for _ in 0 ..< header.numberOfRecords {
+        for _ in 0..<header.numberOfRecords {
             let record = try DNSRecordDecoder.decode(from: &byteBuffer)
             records.append(record)
         }
 
         var authorities: [any DNSRecord] = []
-        for _ in 0 ..< header.numberOfAuthorities {
+        for _ in 0..<header.numberOfAuthorities {
             let record = try DNSRecordDecoder.decode(from: &byteBuffer)
             authorities.append(record)
         }
 
         var resources: [any DNSRecord] = []
-        for _ in 0 ..< header.numberOfResources {
+        for _ in 0..<header.numberOfResources {
             let record = try DNSRecordDecoder.decode(from: &byteBuffer)
             resources.append(record)
         }
@@ -59,7 +59,9 @@ extension DNSPacket {
             Logger.dns.debug("ByteBuffer has parsed \(byteBuffer.currentIndex)/\(data.count) bytes")
         }
 
-        return DNSPacket(header: header, queries: queries, records: records, authorities: authorities, resources: resources)
+        return DNSPacket(
+            header: header, queries: queries, records: records, authorities: authorities,
+            resources: resources)
     }
 
 }
@@ -69,7 +71,8 @@ extension DNSPacket {
 extension DNSPacket {
 
     public func encode(compressLabels: Bool = true) throws -> Data {
-        var byteBuffer: any ByteBufferWriting = compressLabels ? DNSPacketCompressor() : ByteBufferWriter()
+        var byteBuffer: any ByteBufferWriting =
+            compressLabels ? DNSPacketCompressor() : ByteBufferWriter()
 
         try header.encode(into: &byteBuffer)
 
@@ -134,25 +137,27 @@ extension DNSPacket: Equatable {
 
         switch lhs.recordType {
         case .unknown:
-            return areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: DNSUnknownRecord.self)
+            return areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: UnknownRecord.self)
         case .A:
-            return areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: DNSARecord.self)
+            return areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: ARecord.self)
         case .AAAA:
-            return areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: DNSAAAARecord.self)
+            return areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: AAAARecord.self)
         case .NS:
-            return areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: DNSNSRecord.self)
+            return areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: NSRecord.self)
         case .CNAME:
-            return areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: DNSCNAMERecord.self)
+            return areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: CNAMERecord.self)
         case .MX:
-            return areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: DNSMXRecord.self)
+            return areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: MXRecord.self)
         case .SOA:
-            return areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: DNSUnknownRecord.self)
+            return areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: UnknownRecord.self)
         case .TXT:
-            return areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: DNSTXTRecord.self)
+            return areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: TXTRecord.self)
         }
     }
 
-    private static func areRecordsOfTypeEqual<Record: DNSRecord>(lhs: any DNSRecord, rhs: any DNSRecord, type: Record.Type) -> Bool {
+    private static func areRecordsOfTypeEqual<Record: DNSRecord>(
+        lhs: any DNSRecord, rhs: any DNSRecord, type: Record.Type
+    ) -> Bool {
         guard let castedLHS = lhs as? Record, let castedRHS = rhs as? Record else {
             return false
         }

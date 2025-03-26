@@ -22,7 +22,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
 
         switch recordType {
         case .A:
-            return DNSARecord(
+            return ARecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
@@ -30,7 +30,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 address: IPv4Address(fragments: Array(customData))
             )
         case .AAAA:
-            return DNSAAAARecord(
+            return AAAARecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
@@ -38,7 +38,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 address: try IPv6Address(fragments: Array(customData))
             )
         case .NS:
-            return DNSNSRecord(
+            return NSRecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
@@ -47,7 +47,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 paylodLabels: try DNSLabels.decode(from: &byteBuffer)
             )
         case .CNAME:
-            return DNSCNAMERecord(
+            return CNAMERecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
@@ -56,7 +56,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 paylodLabels: try DNSLabels.decode(from: &byteBuffer)
             )
         case .MX:
-            return DNSMXRecord(
+            return MXRecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
@@ -72,7 +72,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 throw DecoderError.cantConvertToString(bytes: contentData)
             }
 
-            return DNSTXTRecord(
+            return TXTRecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
@@ -80,7 +80,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 content: content
             )
         case .SOA, .unknown:
-            return DNSUnknownRecord(
+            return UnknownRecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,

@@ -48,7 +48,7 @@ struct DNSPacketTests {
         let firstQuery = try #require(packet.queries.first)
         #expect(firstQuery.labels.labels == ["google", "com"])
 
-        let firstRecord = try #require(packet.records.first as? DNSARecord)
+        let firstRecord = try #require(packet.records.first as? ARecord)
         #expect(firstRecord.recordType == .A)
         #expect(firstRecord.labels.labels == ["google", "com"])
         #expect(firstRecord.address.fragments == [216, 58, 215, 78])
@@ -88,21 +88,21 @@ struct DNSPacketTests {
         let dnsQuery2 = DNSQuery(labels: ["google", "com"], recordType: .A, recordClass: 1)
         let dnsQuery3 = DNSQuery(labels: ["panhans", "dev"], recordType: .A, recordClass: 1)
 
-        let dnsRecord1 = DNSARecord(
+        let dnsRecord1 = ARecord(
             labels: DNSLabels(labels: ["mail", "google", "com"]),
             recordType: .A,
             recordClass: 1,
             timeToLive: 100,
             address: IPv4Address(192, 168, 178, 1)
         )
-        let dnsRecord2 = DNSARecord(
+        let dnsRecord2 = ARecord(
             labels: DNSLabels(labels: ["google", "com"]),
             recordType: .A,
             recordClass: 1,
             timeToLive: 100,
             address: IPv4Address(192, 168, 178, 2)
         )
-        let dnsRecord3 = DNSARecord(
+        let dnsRecord3 = ARecord(
             labels: DNSLabels(labels: ["panhans", "dev"]),
             recordType: .A,
             recordClass: 1,
@@ -135,7 +135,7 @@ struct DNSPacketTests {
     func packetsAreEqual() {
         let dnsQuery1 = DNSQuery(labels: ["mail", "google", "com"], recordType: .A, recordClass: 1)
 
-        let dnsRecord1 = DNSARecord(
+        let dnsRecord1 = ARecord(
             labels: DNSLabels(labels: ["mail", "google", "com"]),
             recordType: .A,
             recordClass: 1,
@@ -151,14 +151,14 @@ struct DNSPacketTests {
 
     @Test
     func packetsAreNotEqual() {
-        let dnsRecord1 = DNSARecord(
+        let dnsRecord1 = ARecord(
             labels: DNSLabels(labels: ["mail", "google", "com"]),
             recordType: .A,
             recordClass: 1,
             timeToLive: 100,
             address: IPv4Address(192, 168, 178, 1)
         )
-        let dnsRecord2 = DNSARecord(
+        let dnsRecord2 = ARecord(
             labels: DNSLabels(labels: ["google", "com"]),
             recordType: .A,
             recordClass: 1,

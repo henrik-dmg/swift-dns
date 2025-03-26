@@ -40,7 +40,7 @@ extension DNSRecord {
 
 // MARK: - Unknown Record Type
 
-public struct DNSUnknownRecord: DNSRecord {
+public struct UnknownRecord: DNSRecord {
 
     public let labels: DNSLabels
     public let recordType: DNSRecordType
@@ -57,7 +57,7 @@ public struct DNSUnknownRecord: DNSRecord {
 
 // MARK: - A Record
 
-public struct DNSARecord: DNSRecord, CustomDebugStringConvertible {
+public struct ARecord: DNSRecord, CustomDebugStringConvertible {
 
     public let labels: DNSLabels
     public let recordType: DNSRecordType
@@ -81,7 +81,7 @@ public struct DNSARecord: DNSRecord, CustomDebugStringConvertible {
 
 // MARK: - AAAA Record
 
-public struct DNSAAAARecord: DNSRecord, CustomDebugStringConvertible {
+public struct AAAARecord: DNSRecord, CustomDebugStringConvertible {
 
     public let labels: DNSLabels
     public let recordType: DNSRecordType
@@ -105,7 +105,7 @@ public struct DNSAAAARecord: DNSRecord, CustomDebugStringConvertible {
 
 // MARK: - NS Record
 
-public struct DNSNSRecord: DNSRecord {
+public struct NSRecord: DNSRecord {
 
     public let labels: DNSLabels
     public let recordType: DNSRecordType
@@ -122,7 +122,7 @@ public struct DNSNSRecord: DNSRecord {
 
 // MARK: - CNAME Record
 
-public struct DNSCNAMERecord: DNSRecord {
+public struct CNAMERecord: DNSRecord {
 
     public let labels: DNSLabels
     public let recordType: DNSRecordType
@@ -139,7 +139,7 @@ public struct DNSCNAMERecord: DNSRecord {
 
 // MARK: - MX Record
 
-public struct DNSMXRecord: DNSRecord {
+public struct MXRecord: DNSRecord {
 
     public let labels: DNSLabels
     public let recordType: DNSRecordType
@@ -158,7 +158,7 @@ public struct DNSMXRecord: DNSRecord {
 
 // MARK: - TXT Record
 
-public struct DNSTXTRecord: DNSRecord {
+public struct TXTRecord: DNSRecord {
 
     public let labels: DNSLabels
     public let recordType: DNSRecordType

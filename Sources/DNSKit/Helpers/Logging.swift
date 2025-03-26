@@ -5,12 +5,10 @@
 //  Created by Henrik Panhans on 20.01.25.
 //
 
-import OSLog
+import Logging
 
 extension Logger {
 
-    static var dns: Logger {
-        Logger(subsystem: "dev.panhans.swift-dns", category: "dns")
-    }
+    static let dns = Logger(label: "dev.panhans.swift-dns.dns")
 
 }
