@@ -18,8 +18,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        swift: ["6.0.2", "5.10.1"]
+        os: [ubuntu-latest, macos-latest]
+        swift: ["6.0.2"]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -27,7 +27,5 @@ jobs:
         uses: swift-actions/setup-swift@v2
         with:
           swift-version: ${{ matrix.swift }}
-      - name: Get Swift version
-        run: swift --version
       - name: Run tests
         run: swift test -v

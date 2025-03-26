@@ -26,6 +26,10 @@ let package = Package(
             url: "https://github.com/apple/swift-log.git",
             .upToNextMajor(from: "1.0.0")
         ),
+        .package(
+            url: "https://github.com/apple/swift-testing.git",
+            branch: "main"
+        ),
     ],
     targets: [
         .executableTarget(
@@ -45,7 +49,8 @@ let package = Package(
         .testTarget(
             name: "DNSKitTests",
             dependencies: [
-                "DNSKit"
+                "DNSKit",
+                .product(name: "Testing", package: "swift-testing"),
             ],
             resources: [
                 .process("Resources")
