@@ -31,10 +31,10 @@ extension DNSRecordType: DNSPacketDecodable {
         let integer = try byteBuffer.readUInt16()
         return switch integer {
         case 1: .A
-        case 2: .NS
+        case 28: .AAAA
         case 5: .CNAME
         case 15: .MX
-        case 28: .AAAA
+        case 2: .NS
         case 6: .SOA
         case 16: .TXT
         default: .unknown(integer)
@@ -53,9 +53,9 @@ extension DNSRecordType: DNSPacketEncodable {
             case .unknown(let integer): integer
             case .A: 1
             case .AAAA: 28
-            case .NS: 2
             case .CNAME: 5
             case .MX: 15
+            case .NS: 2
             case .SOA: 6
             case .TXT: 16
             }
