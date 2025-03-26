@@ -16,9 +16,10 @@ jobs:
     name: Swift ${{ matrix.swift }} on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        swift: ["6.0.2"]
+        swift: ["6.0.2", "5.10"]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

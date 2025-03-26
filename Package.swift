@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 5.10
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -11,16 +11,20 @@ let package = Package(
     ],
     products: [
         .executable(name: "dns-resolver", targets: ["dns-resolver"]),
-        .library(name: "DNSKit", targets: ["DNSKit"])
+        .library(name: "DNSKit", targets: ["DNSKit"]),
     ],
     dependencies: [
         .package(
             url: "https://github.com/apple/swift-async-dns-resolver",
-                .upToNextMajor(from: "0.1.0")
+            .upToNextMajor(from: "0.1.0")
         ),
         .package(
             url: "https://github.com/apple/swift-argument-parser",
             .upToNextMajor(from: "1.5.0")
+        ),
+        .package(
+            url: "https://github.com/apple/swift-log.git",
+            .upToNextMajor(from: "1.0.0")
         ),
     ],
     targets: [
@@ -29,10 +33,15 @@ let package = Package(
             dependencies: [
                 .product(name: "AsyncDNSResolver", package: "swift-async-dns-resolver"),
                 .product(name: "ArgumentParser", package: "swift-argument-parser"),
-                "DNSKit"
+                "DNSKit",
             ]
         ),
-        .target(name: "DNSKit"),
+        .target(
+            name: "DNSKit",
+            dependencies: [
+                .product(name: "Logging", package: "swift-log")
+            ]
+        ),
         .testTarget(
             name: "DNSKitTests",
             dependencies: [
