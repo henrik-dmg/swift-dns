@@ -10,18 +10,9 @@ let package = Package(
         .iOS(.v16),
     ],
     products: [
-        .executable(name: "dns-resolver", targets: ["dns-resolver"]),
-        .library(name: "DNSKit", targets: ["DNSKit"]),
+        .library(name: "DNSKit", targets: ["DNSKit"])
     ],
     dependencies: [
-        .package(
-            url: "https://github.com/apple/swift-async-dns-resolver",
-            .upToNextMajor(from: "0.1.0")
-        ),
-        .package(
-            url: "https://github.com/apple/swift-argument-parser",
-            .upToNextMajor(from: "1.5.0")
-        ),
         .package(
             url: "https://github.com/apple/swift-log.git",
             .upToNextMajor(from: "1.0.0")
@@ -32,14 +23,6 @@ let package = Package(
         ),
     ],
     targets: [
-        .executableTarget(
-            name: "dns-resolver",
-            dependencies: [
-                .product(name: "AsyncDNSResolver", package: "swift-async-dns-resolver"),
-                .product(name: "ArgumentParser", package: "swift-argument-parser"),
-                "DNSKit",
-            ]
-        ),
         .target(
             name: "DNSKit",
             dependencies: [

@@ -117,19 +117,20 @@ struct DNSPacketCompressor: ByteBufferWriting {
                 hasWrittenJumpDirectiveLast = true
                 hasWrittenJumpDirective = true
             } else {
-                // No reusable suffix found, so write the label as normal
-                if let firstLabel = remainingLabelsToEncode.first {
-                    try writeLabel(firstLabel)
-
-                    // Move on to next label
-                    remainingLabelsToEncode = Array(remainingLabelsToEncode.dropFirst())
-
-                    // Since we wrote a label (not a jump), update tracking
-                    hasWrittenJumpDirectiveLast = false
-                } else {
+                guard let firstLabel = remainingLabelsToEncode.first else {
                     // Defensive: This shouldn't happen — if we’re here, something went wrong
                     // TODO: Ideally replace this with a proper thrown error
+                    continue
                 }
+
+                // No reusable suffix found, so write the label as normal
+                try writeLabel(firstLabel)
+
+                // Move on to next label
+                remainingLabelsToEncode = Array(remainingLabelsToEncode.dropFirst())
+
+                // Since we wrote a label (not a jump), update tracking
+                hasWrittenJumpDirectiveLast = false
             }
         }
 

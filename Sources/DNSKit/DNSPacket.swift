@@ -23,45 +23,47 @@ public struct DNSPacket {
 extension DNSPacket {
 
     public static func decode(from data: Data) throws -> DNSPacket {
-        print(data.hexEncodedString())
+        Logger.dns.debug("Received \(data.hexEncodedString())")
 
         var byteBuffer: any ByteBufferReading = ByteBufferReader(data)
 
         let header = try DNSHeader.decode(from: &byteBuffer)
 
-        print(header)
+        Logger.dns.debug("\(header)")
 
         var queries: [DNSQuery] = []
-        for _ in 0..<header.numberOfQueries {
+        for _ in 0 ..< header.numberOfQueries {
             let query = try DNSQuery.decode(from: &byteBuffer)
             queries.append(query)
         }
 
         var records: [any DNSRecord] = []
-        for _ in 0..<header.numberOfRecords {
+        for _ in 0 ..< header.numberOfRecords {
             let record = try DNSRecordDecoder.decode(from: &byteBuffer)
             records.append(record)
         }
 
         var authorities: [any DNSRecord] = []
-        for _ in 0..<header.numberOfAuthorities {
+        for _ in 0 ..< header.numberOfAuthorities {
             let record = try DNSRecordDecoder.decode(from: &byteBuffer)
             authorities.append(record)
         }
 
         var resources: [any DNSRecord] = []
-        for _ in 0..<header.numberOfResources {
+        for _ in 0 ..< header.numberOfResources {
             let record = try DNSRecordDecoder.decode(from: &byteBuffer)
             resources.append(record)
         }
 
-        if byteBuffer.currentIndex < data.count {
-            Logger.dns.debug("ByteBuffer has parsed \(byteBuffer.currentIndex)/\(data.count) bytes")
-        }
+        Logger.dns.debug("ByteBuffer has parsed \(byteBuffer.currentIndex)/\(data.count) bytes")
 
         return DNSPacket(
-            header: header, queries: queries, records: records, authorities: authorities,
-            resources: resources)
+            header: header,
+            queries: queries,
+            records: records,
+            authorities: authorities,
+            resources: resources
+        )
     }
 
 }
@@ -156,7 +158,9 @@ extension DNSPacket: Equatable {
     }
 
     private static func areRecordsOfTypeEqual<Record: DNSRecord>(
-        lhs: any DNSRecord, rhs: any DNSRecord, type: Record.Type
+        lhs: any DNSRecord,
+        rhs: any DNSRecord,
+        type: Record.Type
     ) -> Bool {
         guard let castedLHS = lhs as? Record, let castedRHS = rhs as? Record else {
             return false

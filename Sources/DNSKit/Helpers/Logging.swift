@@ -9,6 +9,13 @@ import Logging
 
 extension Logger {
 
-    static let dns = Logger(label: "dev.panhans.swift-dns.dns")
+    private static let subsystem: String = "dev.panhans.swift-dns"
+
+    static let dns = Logger(category: "dns")
+    static let compressor = Logger(category: "compressor")
+
+    init(category: String) {
+        self.init(label: "\(Self.subsystem).\(category)")
+    }
 
 }
