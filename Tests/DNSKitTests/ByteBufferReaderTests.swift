@@ -13,14 +13,14 @@ import Testing
 @Suite
 struct ByteBufferReaderTests {
 
-    @Test(arguments: [1, 2, 3, 4, 5])
+    @Test("reads uint16", arguments: [1, 2, 3, 4, 5])
     func int16(value: UInt8) throws {
         var buffer = ByteBufferReader([0, value])
         let int = try buffer.readUInt16()
         #expect(int == value)
     }
 
-    @Test(arguments: [1, 2, 3, 4, 5])
+    @Test("reads shifted uint16", arguments: [1, 2, 3, 4, 5])
     func int16Bigger(value: UInt8) throws {
         var buffer = ByteBufferReader([1, value])
         let int = try buffer.readUInt16()

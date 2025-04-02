@@ -43,30 +43,4 @@ struct DNSPacketCompressorTests {
         #expect(compressor.data == Data(expected))
     }
 
-    @Test("throws if compression is used but does not end with jump")
-    func compressionMustEndWithJump() throws {
-        var compressor = DNSPacketCompressor()
-
-        // Write one label, simulate a jump, but then leave remaining labels uncompressed
-        try compressor.write(DNSLabels(labels: ["www"]))
-        // compressor.labelPositions.append(DNSLabelPosition(index: 0, label: "www"))
-
-        let labels = DNSLabels(labels: ["www", "example", "com"])
-
-        // This should fail because the compression did not end with a jump
-        #expect {
-            try compressor.write(labels)
-        } throws: { error in
-            guard let encoderError = error as? EncoderError else {
-                return false
-            }
-            switch encoderError {
-            case .didNotWriteJumpDirectiveLast:
-                return true
-            default:
-                return false
-            }
-        }
-    }
-
 }

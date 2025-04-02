@@ -13,7 +13,7 @@ import Testing
 @Suite
 struct DNSRecordTypeTests {
 
-    @Test(arguments: DNSRecordType.allCases)
+    @Test("codes match type names", arguments: DNSRecordType.allCases)
     func recordTypeEncodesAndDecodesTheSameValue(recordType: DNSRecordType) throws {
         var writer: any ByteBufferWriting = ByteBufferWriter()
         try recordType.encode(into: &writer)

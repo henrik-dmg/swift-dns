@@ -13,7 +13,7 @@ import Testing
 @Suite
 struct LabelPositionTests {
 
-    @Test
+    @Test("labels are continuous")
     func continuousLabels() {
         let pos1 = DNSLabelPosition(index: 12, label: "google")
         let pos2 = DNSLabelPosition(index: 19, label: "com")
@@ -21,14 +21,14 @@ struct LabelPositionTests {
         #expect(!pos2.areLabelsContinuous(nextLabel: pos1))
     }
 
-    @Test
+    @Test("labels are not continuous")
     func nonContinuousLabels() {
         let pos1 = DNSLabelPosition(index: 12, label: "google")
         let pos2 = DNSLabelPosition(index: 25, label: "com")
         #expect(!pos1.areLabelsContinuous(nextLabel: pos2))
     }
 
-    @Test
+    @Test("continuous groups")
     func continuousGroups() {
         let pos1 = DNSLabelPosition(index: 12, label: "google")
         let pos2 = DNSLabelPosition(index: 19, label: "com")
@@ -40,7 +40,7 @@ struct LabelPositionTests {
         #expect(groups.first == DNSContinuousLabelPosition(index: 12, labels: ["google", "com"]))
     }
 
-    @Test
+    @Test("continuous groups with single element")
     func continuousGroupsSingleElement() {
         let pos1 = DNSLabelPosition(index: 12, label: "google")
 

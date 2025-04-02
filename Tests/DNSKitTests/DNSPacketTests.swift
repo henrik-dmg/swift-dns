@@ -15,7 +15,7 @@ struct DNSPacketTests {
 
     // MARK: - Decoding
 
-    @Test
+    @Test("decodes query packet")
     func decodeQueryPacket() throws {
         let path = try #require(
             Bundle.module.url(forResource: "query_packet", withExtension: "txt")
@@ -32,7 +32,7 @@ struct DNSPacketTests {
         #expect(firstQuery.labels.labels == ["google", "com"])
     }
 
-    @Test
+    @Test("decodes response packet")
     func decodeResponsePacket() throws {
         let path = try #require(
             Bundle.module.url(forResource: "response_packet", withExtension: "txt")
@@ -56,18 +56,21 @@ struct DNSPacketTests {
 
     // MARK: - Encoding
 
-    @Test(arguments: [
-        "query_packet",
-        "query_packet_big",
-        "query_packet_aaaa",
-        "query_packet_mixed",
-        "query_packet_txt",
-        "response_packet",
-        "response_packet_big",
-        "response_packet_aaaa",
-        "response_packet_mixed",
-        "response_packet_txt",
-    ])
+    @Test(
+        "encodes packet",
+        arguments: [
+            "query_packet",
+            "query_packet_big",
+            "query_packet_aaaa",
+            "query_packet_mixed",
+            "query_packet_txt",
+            "response_packet",
+            "response_packet_big",
+            "response_packet_aaaa",
+            "response_packet_mixed",
+            "response_packet_txt",
+        ]
+    )
     func encodePacket(packetName: String) throws {
         let path = try #require(Bundle.module.url(forResource: packetName, withExtension: "txt"))
         let data = try Data(contentsOf: path)
@@ -82,7 +85,7 @@ struct DNSPacketTests {
         }
     }
 
-    @Test
+    @Test("encodes custom package")
     func encodeCustomPackage() throws {
         let dnsQuery1 = DNSQuery(labels: ["mail", "google", "com"], recordType: .A, recordClass: 1)
         let dnsQuery2 = DNSQuery(labels: ["google", "com"], recordType: .A, recordClass: 1)
@@ -131,7 +134,7 @@ struct DNSPacketTests {
         #expect(uncompressedDecodedPacket == compressedDecodedPacket)
     }
 
-    @Test
+    @Test("packets are equal")
     func packetsAreEqual() {
         let dnsQuery1 = DNSQuery(labels: ["mail", "google", "com"], recordType: .A, recordClass: 1)
 
@@ -149,7 +152,7 @@ struct DNSPacketTests {
         #expect(packet1 == packet2)
     }
 
-    @Test
+    @Test("packets are not equal")
     func packetsAreNotEqual() {
         let dnsRecord1 = ARecord(
             labels: DNSLabels(labels: ["mail", "google", "com"]),
