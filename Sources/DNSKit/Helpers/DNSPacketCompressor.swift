@@ -16,14 +16,10 @@ struct DNSPacketCompressor: ByteBufferWriting {
     var byteBuffer: ByteBufferWriter
 
     /// The data currently in the byte buffer.
-    var data: Data {
-        byteBuffer.data
-    }
+    var data: Data { byteBuffer.data }
 
     /// The current index in the byte buffer.
-    var currentIndex: Data.Index {
-        byteBuffer.currentIndex
-    }
+    var currentIndex: Data.Index { byteBuffer.currentIndex }
 
     /// An array of label positions used for DNS label compression.
     private var labelPositions: [DNSLabelPosition] = []
@@ -32,47 +28,33 @@ struct DNSPacketCompressor: ByteBufferWriting {
 
     /// Initializes a new instance of `DNSPacketCompressor` with optional initial data.
     /// - Parameter data: The initial data to write to the byte buffer.
-    init(_ data: Data = Data()) {
-        self.byteBuffer = ByteBufferWriter(data)
-    }
+    init(_ data: Data = Data()) { self.byteBuffer = ByteBufferWriter(data) }
 
     // MARK: - Methods
 
     /// Writes a 32-bit unsigned integer to the byte buffer.
     /// - Parameter value: The value to write.
-    mutating func write(_ value: UInt32) {
-        byteBuffer.write(value)
-    }
+    mutating func write(_ value: UInt32) { byteBuffer.write(value) }
 
     /// Writes a 16-bit unsigned integer to the byte buffer.
     /// - Parameter value: The value to write.
-    mutating func write(_ value: UInt16) {
-        byteBuffer.write(value)
-    }
+    mutating func write(_ value: UInt16) { byteBuffer.write(value) }
 
     /// Writes an 8-bit unsigned integer to the byte buffer.
     /// - Parameter value: The value to write.
-    mutating func write(_ value: UInt8) {
-        byteBuffer.write(value)
-    }
+    mutating func write(_ value: UInt8) { byteBuffer.write(value) }
 
     /// Writes a boolean value to the byte buffer.
     /// - Parameter value: The value to write.
-    mutating func write(_ value: Bool) {
-        byteBuffer.write(value)
-    }
+    mutating func write(_ value: Bool) { byteBuffer.write(value) }
 
     /// Writes an array of bytes to the byte buffer.
     /// - Parameter bytes: The bytes to write.
-    mutating func write(_ bytes: [UInt8]) {
-        byteBuffer.write(bytes)
-    }
+    mutating func write(_ bytes: [UInt8]) { byteBuffer.write(bytes) }
 
     /// Writes data to the byte buffer.
     /// - Parameter data: The data to write.
-    mutating func write(_ data: Data) {
-        byteBuffer.write(data)
-    }
+    mutating func write(_ data: Data) { byteBuffer.write(data) }
 
     // MARK: - Label Compression
 
@@ -109,9 +91,7 @@ struct DNSPacketCompressor: ByteBufferWriting {
                 labelsSavedByJumpDirective += labelMatchPosition.labels.count
 
                 // Remove the matched suffix from the list to encode
-                remainingLabelsToEncode = Array(
-                    remainingLabelsToEncode.dropFirst(labelMatchPosition.labels.count)
-                )
+                remainingLabelsToEncode = Array(remainingLabelsToEncode.dropFirst(labelMatchPosition.labels.count))
 
                 // Mark that we wrote a jump, and it was the last thing written
                 hasWrittenJumpDirectiveLast = true
@@ -141,9 +121,7 @@ struct DNSPacketCompressor: ByteBufferWriting {
         }
 
         // If compression *was* used, it *must* have ended in a jump (RFC 1035 section 4.1.4)
-        if !hasWrittenJumpDirectiveLast {
-            throw EncoderError.didNotWriteJumpDirectiveLast
-        }
+        if !hasWrittenJumpDirectiveLast { throw EncoderError.didNotWriteJumpDirectiveLast }
     }
 
     /// Writes a single DNS label to the byte buffer.
@@ -165,10 +143,7 @@ struct DNSPacketCompressor: ByteBufferWriting {
         }
 
         let continuousLabelGroups = labelPositions.continuousPositions()
-
-        return continuousLabelGroups.first { labelPosition in
-            labelPosition.labels == remainingLabels
-        }
+        return continuousLabelGroups.first { labelPosition in labelPosition.labels == remainingLabels }
     }
 
 }

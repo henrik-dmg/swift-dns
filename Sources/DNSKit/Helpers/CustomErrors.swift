@@ -18,18 +18,12 @@ enum DecoderError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .cantConvertToString(let bytes):
-            "Can't convert bytes \(bytes.hexEncodedString()) to string"
-        case .noLabelsDecoded:
-            "No labels were decoded"
-        case .maximumNumberOfJumpsReached:
-            "Maximum number of jumps reached"
-        case .cantReadRecordType(let rawValue):
-            "Can't read record type \(rawValue)"
-        case .cantReadResultCode(let uInt8):
-            "Can't read result code \(uInt8)"
-        case .invalidIPv6Address(let bytes):
-            "Invalid IPv6 address \(bytes.hexEncodedString())"
+        case .cantConvertToString(let bytes): "Can't convert bytes \(bytes.hexEncodedString()) to string"
+        case .noLabelsDecoded: "No labels were decoded"
+        case .maximumNumberOfJumpsReached: "Maximum number of jumps reached"
+        case .cantReadRecordType(let rawValue): "Can't read record type \(rawValue)"
+        case .cantReadResultCode(let uInt8): "Can't read result code \(uInt8)"
+        case .invalidIPv6Address(let bytes): "Invalid IPv6 address \(bytes.hexEncodedString())"
         }
     }
 
@@ -45,16 +39,11 @@ enum EncoderError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .labelTooLong(let label):
-            "Label \"\(label)\" is too long"
-        case .cantEncodeLabel(let label):
-            "Can't connect label \"\(label)\" to ASCII"
-        case .didNotWriteJumpDirectiveLast:
-            "Compressor did not write jump directive last, this shouldn't happen"
-        case .unencodableRecordFound(let record):
-            "Could not encode record \(record)"
-        case .cantConvertStringToData(let string):
-            "Can't convert \"\(string)\" to ASCII data"
+        case .labelTooLong(let label): "Label \"\(label)\" is too long"
+        case .cantEncodeLabel(let label): "Can't connect label \"\(label)\" to ASCII"
+        case .didNotWriteJumpDirectiveLast: "Compressor did not write jump directive last, this shouldn't happen"
+        case .unencodableRecordFound(let record): "Could not encode record \(record)"
+        case .cantConvertStringToData(let string): "Can't convert \"\(string)\" to ASCII data"
         }
     }
 

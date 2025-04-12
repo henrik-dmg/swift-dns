@@ -14,8 +14,6 @@ extension Logger {
     static let dns = Logger(category: "dns")
     static let compressor = Logger(category: "compressor")
 
-    init(category: String) {
-        self.init(label: "\(Self.subsystem).\(category)")
-    }
+    init(category: String) { self.init(label: "\(Self.subsystem).\(category)") }
 
 }

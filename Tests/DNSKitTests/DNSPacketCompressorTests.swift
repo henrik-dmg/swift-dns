@@ -5,25 +5,18 @@ import Testing
 
 struct DNSPacketCompressorTests {
 
-    @Test("writes uncompressed labels with null terminator")
-    func uncompressedWrite() throws {
+    @Test("writes uncompressed labels with null terminator") func uncompressedWrite() throws {
         var compressor = DNSPacketCompressor()
         let labels = DNSLabels(labels: ["www", "example", "com"])
 
         try compressor.write(labels)
 
-        let expected: [UInt8] = [
-            3, 119, 119, 119,
-            7, 101, 120, 97, 109, 112, 108, 101,
-            3, 99, 111, 109,
-            0,
-        ]
+        let expected: [UInt8] = [3, 119, 119, 119, 7, 101, 120, 97, 109, 112, 108, 101, 3, 99, 111, 109, 0]
 
         #expect(compressor.data == Data(expected))
     }
 
-    @Test("writes compressed labels using pointer")
-    func compressedWrite() throws {
+    @Test("writes compressed labels using pointer") func compressedWrite() throws {
         var compressor = DNSPacketCompressor()
 
         // First write: "example.com"

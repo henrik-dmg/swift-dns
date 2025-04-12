@@ -21,10 +21,6 @@ extension Data {
 
 }
 
-func join(_ lhs: UInt8, _ rhs: UInt8) -> UInt16 {
-    UInt16(lhs) << 8 + UInt16(rhs)
-}
+func join(_ lhs: UInt8, _ rhs: UInt8) -> UInt16 { UInt16(lhs) << 8 + UInt16(rhs) }
 
-func join(_ lhs: UInt16, _ rhs: UInt16) -> UInt32 {
-    UInt32(lhs) << 16 + UInt32(rhs)
-}
+func join(_ lhs: UInt16, _ rhs: UInt16) -> UInt32 { UInt32(lhs) << 16 + UInt32(rhs) }

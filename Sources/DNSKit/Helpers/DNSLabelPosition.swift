@@ -13,9 +13,7 @@ struct DNSLabelPosition: Equatable {
     /// Checks if the next label is stored immediately after this one,
     /// including its length byte (as required by the DNS label encoding).
     func areLabelsContinuous(nextLabel: DNSLabelPosition) -> Bool {
-        guard let labelData = label.data(using: .ascii) else {
-            return false
-        }
+        guard let labelData = label.data(using: .ascii) else { return false }
 
         // Calculate the expected offset of the next label
         // (current index + length byte + label bytes)
@@ -38,9 +36,7 @@ extension [DNSLabelPosition] {
     /// Groups label positions that are stored contiguously in the buffer.
     /// This enables identifying full domains that can be used for compression.
     func continuousPositions() -> [DNSContinuousLabelPosition] {
-        guard !isEmpty else {
-            return []
-        }
+        guard !isEmpty else { return [] }
 
         var continuousGroups: [DNSContinuousLabelPosition] = []
 
@@ -48,9 +44,7 @@ extension [DNSLabelPosition] {
         var labelGroup: [DNSLabelPosition] = [self[0]]
 
         for position in dropFirst() {
-            guard let lastElement = labelGroup.last else {
-                continue
-            }
+            guard let lastElement = labelGroup.last else { continue }
 
             // Check if this label continues right after the previous
             if lastElement.areLabelsContinuous(nextLabel: position) {

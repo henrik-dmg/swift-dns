@@ -23,9 +23,7 @@ protocol ByteBufferReading: ByteBuffer {
 extension ByteBufferReading {
 
     mutating func seek(_ index: Data.Index) throws {
-        guard data.indices.contains(index) else {
-            throw ByteBufferError.indexOutOfBounds(index, data.endIndex)
-        }
+        guard data.indices.contains(index) else { throw ByteBufferError.indexOutOfBounds(index, data.endIndex) }
         currentIndex = index
     }
 
@@ -40,19 +38,11 @@ struct ByteBufferReader: ByteBufferReading {
 
     // MARK: - Init
 
-    init(_ data: [UInt8]) {
-        self.data = Data(data)
-    }
-
-    init(_ data: Data) {
-        self.data = data
-    }
+    init(_ data: Data) { self.data = data }
 
     // MARK: - Methods
 
-    mutating func readByte() throws -> UInt8 {
-        try readBytes(1)[0]
-    }
+    mutating func readByte() throws -> UInt8 { try readBytes(1)[0] }
 
     mutating func readUInt16() throws -> UInt16 {
         let bytes = try readBytes(2)
