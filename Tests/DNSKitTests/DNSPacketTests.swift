@@ -14,10 +14,12 @@ import Testing
 
     // MARK: - Decoding
 
-    @Test("decodes query packet") func decodeQueryPacket() throws {
+    @Test("decodes query packet")
+    func decodeQueryPacket() throws {
         let path = try #require(Bundle.module.url(forResource: "query_packet", withExtension: "txt"))
         let data = try Data(contentsOf: path)
-        let packet = try DNSPacket.decode(from: data)
+        let decoder = DNSPacketDecoder()
+        let packet = try decoder.decode(from: data)
 
         #expect(packet.header.numberOfQueries == 1)
         #expect(packet.queries.count == 1)
@@ -28,10 +30,12 @@ import Testing
         #expect(firstQuery.labels.labels == ["google", "com"])
     }
 
-    @Test("decodes response packet") func decodeResponsePacket() throws {
+    @Test("decodes response packet")
+    func decodeResponsePacket() throws {
         let path = try #require(Bundle.module.url(forResource: "response_packet", withExtension: "txt"))
         let data = try Data(contentsOf: path)
-        let packet = try DNSPacket.decode(from: data)
+        let decoder = DNSPacketDecoder()
+        let packet = try decoder.decode(from: data)
 
         #expect(packet.header.numberOfQueries == 1)
         #expect(packet.queries.count == 1)
@@ -52,15 +56,22 @@ import Testing
     @Test(
         "encodes packet",
         arguments: [
-            "query_packet", "query_packet_big", "query_packet_aaaa", "query_packet_mixed", "query_packet_txt",
-            "response_packet", "response_packet_big", "response_packet_aaaa", "response_packet_mixed",
+            "query_packet", "query_packet_big", "query_packet_aaaa", "query_packet_mixed",
+            "query_packet_txt",
+            "response_packet", "response_packet_big", "response_packet_aaaa",
+            "response_packet_mixed",
             "response_packet_txt",
         ]
-    ) func encodePacket(packetName: String) throws {
+    )
+    func encodePacket(packetName: String) throws {
         let path = try #require(Bundle.module.url(forResource: packetName, withExtension: "txt"))
         let data = try Data(contentsOf: path)
-        let packet = try DNSPacket.decode(from: data)
-        let encodedPacket = try packet.encode(compressLabels: true)
+        let decoder = DNSPacketDecoder()
+        let packet = try decoder.decode(from: data)
+
+        var encoder = DNSPacketEncoder()
+        encoder.shouldCompressLabels = true
+        let encodedPacket = try encoder.encode(packet: packet)
 
         #expect(encodedPacket == data)
         print(packet.records)
@@ -70,7 +81,8 @@ import Testing
         }
     }
 
-    @Test("encodes custom package") func encodeCustomPackage() throws {
+    @Test("encodes custom package")
+    func encodeCustomPackage() throws {
         let dnsQuery1 = DNSQuery(labels: ["mail", "google", "com"], recordType: .A, recordClass: 1)
         let dnsQuery2 = DNSQuery(labels: ["google", "com"], recordType: .A, recordClass: 1)
         let dnsQuery3 = DNSQuery(labels: ["panhans", "dev"], recordType: .A, recordClass: 1)
@@ -105,20 +117,29 @@ import Testing
             resources: []
         )
 
-        let uncompressedPacketData = try packet.encode(compressLabels: false)
-        let compressedPacketData = try packet.encode(compressLabels: true)
+        // Test uncompressed encoding
+        var uncompressedEncoder = DNSPacketEncoder()
+        uncompressedEncoder.shouldCompressLabels = false
+        let uncompressedPacketData = try uncompressedEncoder.encode(packet: packet)
+
+        // Test compressed encoding
+        var compressedEncoder = DNSPacketEncoder()
+        compressedEncoder.shouldCompressLabels = true
+        let compressedPacketData = try compressedEncoder.encode(packet: packet)
 
         // Should be smaller because google.com occurs multiple times in the packet,
         // so with compression it should not be written multiple times but rather use a jump directive.
         #expect(compressedPacketData.count < uncompressedPacketData.count)
 
-        let uncompressedDecodedPacket = try DNSPacket.decode(from: uncompressedPacketData)
-        let compressedDecodedPacket = try DNSPacket.decode(from: compressedPacketData)
+        let decoder = DNSPacketDecoder()
+        let uncompressedDecodedPacket = try decoder.decode(from: uncompressedPacketData)
+        let compressedDecodedPacket = try decoder.decode(from: compressedPacketData)
 
         #expect(uncompressedDecodedPacket == compressedDecodedPacket)
     }
 
-    @Test("packets are equal") func packetsAreEqual() {
+    @Test("packets are equal")
+    func packetsAreEqual() {
         let dnsQuery1 = DNSQuery(labels: ["mail", "google", "com"], recordType: .A, recordClass: 1)
 
         let dnsRecord1 = ARecord(
@@ -147,7 +168,8 @@ import Testing
         #expect(packet1 == packet2)
     }
 
-    @Test("packets are not equal") func packetsAreNotEqual() {
+    @Test("packets are not equal")
+    func packetsAreNotEqual() {
         let dnsRecord1 = ARecord(
             labels: DNSLabels(labels: ["mail", "google", "com"]),
             recordType: .A,
