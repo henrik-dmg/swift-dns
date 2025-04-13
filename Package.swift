@@ -13,7 +13,7 @@ let package = Package(
         .library(name: "DNSKit", targets: ["DNSKit"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-log.git", .upToNextMajor(from: "1.0.0")),
+        .package(url: "https://github.com/apple/swift-log.git", .upToNextMajor(from: "1.0.0"))
     ],
     targets: [
         .target(
@@ -25,7 +25,7 @@ let package = Package(
         .testTarget(
             name: "DNSKitTests",
             dependencies: [
-                "DNSKit",
+                "DNSKit"
             ],
             resources: [
                 .process("Resources")

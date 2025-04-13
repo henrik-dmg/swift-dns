@@ -34,28 +34,28 @@ public struct DNSPacketDecoder {
 
         // Decode the question section
         var queries: [DNSQuery] = []
-        for _ in 0..<header.numberOfQueries {
+        for _ in 0 ..< header.numberOfQueries {
             let query = try DNSQuery.decode(from: &byteBuffer)
             queries.append(query)
         }
 
         // Decode the answer section
         var records: [any DNSRecord] = []
-        for _ in 0..<header.numberOfRecords {
+        for _ in 0 ..< header.numberOfRecords {
             let record = try DNSRecordDecoder.decode(from: &byteBuffer)
             records.append(record)
         }
 
         // Decode the authority section
         var authorities: [any DNSRecord] = []
-        for _ in 0..<header.numberOfAuthorities {
+        for _ in 0 ..< header.numberOfAuthorities {
             let record = try DNSRecordDecoder.decode(from: &byteBuffer)
             authorities.append(record)
         }
 
         // Decode the additional section
         var resources: [any DNSRecord] = []
-        for _ in 0..<header.numberOfResources {
+        for _ in 0 ..< header.numberOfResources {
             let record = try DNSRecordDecoder.decode(from: &byteBuffer)
             resources.append(record)
         }
