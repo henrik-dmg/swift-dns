@@ -41,14 +41,14 @@ jobs:
           key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
             ${{ runner.os }}-spm-
-      - name: Build
-        run: swift build -v
       - name: Run tests
         run: swift test --enable-code-coverage -v
       - name: Convert coverage report
+        if: ${{ runner.os == 'macos-latest' }}
         continue-on-error: true
-        run: Scripts/convert-coverage-report --target DNSKitPackageTests
+        run: Scripts/convert-coverage-report --target swift-dnsPackageTests
       - name: Upload coverage reports to Codecov
+        if: ${{ runner.os == 'macos-latest' }}
         continue-on-error: true
         uses: codecov/codecov-action@v4
         with:
