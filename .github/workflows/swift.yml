@@ -22,16 +22,19 @@ on:
 
 jobs:
   test-swift:
-    name: ${{ matrix.os }} Tests on Swift ${{ matrix.swift }}
+    name: ${{ matrix.os }} Tests
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        swift: ["6.0.2"]
     steps:
       - name: Setup Swift
+        if: runner.os != 'macOS'
         uses: swift-actions/setup-swift@v2
+      - name: Setup Xcode
+        if: runner.os == 'macOS'
+        uses: maxim-lobanov/setup-xcode@v1
       - name: Checkout Code
         uses: actions/checkout@v4
       - name: Cache SPM dependencies
@@ -54,6 +57,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: henrik-dmg/swift-dns
+          swift_project: swift-dns
 
   lint-swift:
     name: Lint Swift Code
