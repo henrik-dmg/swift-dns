@@ -14,7 +14,6 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-log.git", .upToNextMajor(from: "1.0.0")),
-        .package(url: "https://github.com/apple/swift-testing.git", branch: "main"),
     ],
     targets: [
         .target(
@@ -27,7 +26,6 @@ let package = Package(
             name: "DNSKitTests",
             dependencies: [
                 "DNSKit",
-                .product(name: "Testing", package: "swift-testing"),
             ],
             resources: [
                 .process("Resources")
