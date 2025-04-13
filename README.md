@@ -1,5 +1,7 @@
 # swift-dns
 
+[![codecov](https://codecov.io/gh/henrik-dmg/swift-dns/graph/badge.svg?token=OHrfa9Bgbv)](https://codecov.io/gh/henrik-dmg/swift-dns)
+
 A Swift library for working with DNS packets. It allows decoding and encoding packets, as well as building and parsing queries and responses.
 
 ## Installation

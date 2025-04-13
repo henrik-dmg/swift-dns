@@ -44,11 +44,11 @@ jobs:
       - name: Run tests
         run: swift test --enable-code-coverage -v
       - name: Convert coverage report
-        if: ${{ runner.os == 'macos-latest' }}
+        if: runner.os == 'macOS'
         continue-on-error: true
         run: Scripts/convert-coverage-report --target swift-dnsPackageTests
       - name: Upload coverage reports to Codecov
-        if: ${{ runner.os == 'macos-latest' }}
+        if: runner.os == 'macOS'
         continue-on-error: true
         uses: codecov/codecov-action@v5
         with:
