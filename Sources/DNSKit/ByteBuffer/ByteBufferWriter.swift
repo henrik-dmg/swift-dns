@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol ByteBufferWriting: ByteBuffer {
+protocol ByteBufferWriting: ByteBuffer {
 
     mutating func write(_ value: UInt32)
     mutating func write(_ value: UInt16)

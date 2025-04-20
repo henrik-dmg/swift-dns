@@ -1,6 +1,7 @@
 import Foundation
 import Logging
 
+/// An object that encodes instances of ``DNSPacket`` as raw `Data`.
 public struct DNSPacketEncoder {
 
     /// Whether to use DNS label compression.

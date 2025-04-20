@@ -24,6 +24,8 @@ https://github.com/henrik-dmg/swift-dns.git
 
 ## Usage
 
+The documentation can be found at https://henrik-dmg.github.io/swift-dns/documentation/dnskit/
+
 ### Decoding a packet
 
 Decoding a packet from bytes is straightforward, simply call `DNSPacket.decode(from:)`.
@@ -31,7 +33,7 @@ Decoding a packet from bytes is straightforward, simply call `DNSPacket.decode(f
 ```swift
 import DNSKit
 
-let data // Bytes you received from somewhere else
+let data: Data // Bytes you received from somewhere else
 let decoder = DNSPacketDecoder() // Create a decoder
 let packet = try decoder.decode(from: data)
 
@@ -50,18 +52,6 @@ Encoding a packet is just as easy, simply call `DNSPacketEncoder.encode(packet:)
 let encoder = DNSPacketEncoder() // Create an encoder
 encoder.shouldCompressLabels = false // Disable label compression if you want
 let data = try encoder.encode(packet: packet) // Encode the packet
-```
-
-### Building a query
-
-```swift
-// TODO: Add example
-```
-
-### Building a response
-
-```swift
-// TODO: Add example
 ```
 
 ## Contributing

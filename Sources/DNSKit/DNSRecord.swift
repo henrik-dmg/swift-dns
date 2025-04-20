@@ -30,8 +30,10 @@ public protocol DNSRecord: Equatable, Sendable {
     /// The length of the record-specific data in bytes.
     var lengthOfCustomData: UInt16 { get }
 
-    /// Encodes the record-specific data into the provided buffer.
-    /// This method is implemented by each record type to handle its specific data format.
+}
+
+protocol DNSRecordEncodable {
+
     func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws
 
 }
@@ -43,7 +45,9 @@ extension DNSRecord {
     /// This includes both the common fields and the record-specific data.
     func encode(into buffer: inout ByteBufferWriting) throws {
         try encodeSharedValues(into: &buffer)
-        try encodeAdditionalData(into: &buffer)
+        if let encodable = self as? DNSRecordEncodable {
+            try encodable.encodeAdditionalData(into: &buffer)
+        }
     }
 
     /// Encodes the common fields shared by all DNS records.
@@ -64,7 +68,7 @@ extension DNSRecord {
 /// Represents a DNS record of an unknown or unsupported type.
 ///
 /// This record type is used when the DNS server returns a record type that is not explicitly supported by this implementation.
-public struct UnknownRecord: DNSRecord {
+public struct UnknownRecord: DNSRecord, DNSRecordEncodable {
 
     public let labels: DNSLabels
     public let recordType: DNSRecordType
@@ -75,7 +79,7 @@ public struct UnknownRecord: DNSRecord {
     /// The raw bytes of the record data.
     public let bytes: Data
 
-    public func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
+    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
         buffer.write(bytes)
     }
 
@@ -86,7 +90,7 @@ public struct UnknownRecord: DNSRecord {
 /// Represents an A (Address) record, which maps a domain name to an IPv4 address.
 ///
 /// A records are used to resolve hostnames to their corresponding IPv4 addresses.
-public struct ARecord: DNSRecord, CustomDebugStringConvertible {
+public struct ARecord: DNSRecord, CustomDebugStringConvertible, DNSRecordEncodable {
 
     public let labels: DNSLabels
     public let recordType: DNSRecordType
@@ -100,12 +104,12 @@ public struct ARecord: DNSRecord, CustomDebugStringConvertible {
         4  // IPv4 addresses have 4 octets
     }
 
-    public func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
-        try address.encode(into: &buffer)
-    }
-
     public var debugDescription: String {
         "A(\(labels.labels), class \(recordClass), TTL \(timeToLive), IP: \(address))"
+    }
+
+    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
+        try address.encode(into: &buffer)
     }
 
 }
@@ -115,7 +119,7 @@ public struct ARecord: DNSRecord, CustomDebugStringConvertible {
 /// Represents an AAAA (IPv6 Address) record, which maps a domain name to an IPv6 address.
 ///
 /// AAAA records are used to resolve hostnames to their corresponding IPv6 addresses.
-public struct AAAARecord: DNSRecord, CustomDebugStringConvertible {
+public struct AAAARecord: DNSRecord, CustomDebugStringConvertible, DNSRecordEncodable {
 
     public let labels: DNSLabels
     public let recordType: DNSRecordType
@@ -129,12 +133,12 @@ public struct AAAARecord: DNSRecord, CustomDebugStringConvertible {
         16  // IPv6 addresses have 16 octets
     }
 
-    public func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
-        try address.encode(into: &buffer)
-    }
-
     public var debugDescription: String {
         "AAAA(\(labels.labels), class \(recordClass), TTL \(timeToLive), IP: \(address))"
+    }
+
+    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
+        try address.encode(into: &buffer)
     }
 
 }
@@ -144,7 +148,7 @@ public struct AAAARecord: DNSRecord, CustomDebugStringConvertible {
 /// Represents an NS (Name Server) record, which specifies the authoritative name servers for a domain.
 ///
 /// NS records are used to delegate a subdomain to a set of name servers.
-public struct NSRecord: DNSRecord {
+public struct NSRecord: DNSRecord, DNSRecordEncodable {
 
     public let labels: DNSLabels
     public let recordType: DNSRecordType
@@ -155,7 +159,7 @@ public struct NSRecord: DNSRecord {
     /// The domain name of the name server.
     public let paylodLabels: DNSLabels
 
-    public func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
+    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
         try buffer.write(paylodLabels)
     }
 
@@ -166,7 +170,7 @@ public struct NSRecord: DNSRecord {
 /// Represents a CNAME (Canonical Name) record, which maps an alias name to the true or canonical name.
 ///
 /// CNAME records are used to create aliases for domain names.
-public struct CNAMERecord: DNSRecord {
+public struct CNAMERecord: DNSRecord, DNSRecordEncodable {
 
     public let labels: DNSLabels
     public let recordType: DNSRecordType
@@ -177,7 +181,7 @@ public struct CNAMERecord: DNSRecord {
     /// The canonical domain name that the alias points to.
     public let paylodLabels: DNSLabels
 
-    public func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
+    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
         try buffer.write(paylodLabels)
     }
 
@@ -188,7 +192,7 @@ public struct CNAMERecord: DNSRecord {
 /// Represents an MX (Mail Exchange) record, which specifies the mail server responsible for accepting email messages on behalf of a domain.
 ///
 /// MX records include a priority value to allow for multiple mail servers with different priorities.
-public struct MXRecord: DNSRecord {
+public struct MXRecord: DNSRecord, DNSRecordEncodable {
 
     public let labels: DNSLabels
     public let recordType: DNSRecordType
@@ -204,7 +208,7 @@ public struct MXRecord: DNSRecord {
     /// The domain name of the mail server.
     public let paylodLabels: DNSLabels
 
-    public func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
+    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
         buffer.write(priority)
         try buffer.write(paylodLabels)
     }
@@ -216,7 +220,7 @@ public struct MXRecord: DNSRecord {
 /// Represents a TXT (Text) record, which can contain arbitrary text data.
 ///
 /// TXT records are commonly used for various purposes including SPF records, DKIM records, and general information.
-public struct TXTRecord: DNSRecord {
+public struct TXTRecord: DNSRecord, DNSRecordEncodable {
 
     public let labels: DNSLabels
     public let recordType: DNSRecordType
@@ -230,7 +234,7 @@ public struct TXTRecord: DNSRecord {
         UInt16(content.count) + 1  // + 1 because one byte is added to define the length of the following string
     }
 
-    public func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
+    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
         buffer.write(UInt8(content.count))
         guard let contentData = content.data(using: .ascii) else {
             throw EncoderError.cantConvertStringToData(content)

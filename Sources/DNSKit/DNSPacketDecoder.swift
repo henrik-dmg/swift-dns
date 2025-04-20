@@ -8,6 +8,7 @@
 import Foundation
 import Logging
 
+/// An object that decodes instances of ``DNSPacket`` from raw `Data`.
 public struct DNSPacketDecoder {
 
     public init() {}
@@ -22,7 +23,7 @@ public struct DNSPacketDecoder {
     /// 5. Decodes the additional section based on the number of resources in the header
     ///
     /// - Parameter data: The raw data containing the DNS message
-    /// - Returns: A decoded DNSPacket instance
+    /// - Returns: A  ``DNSPacket`` instance
     /// - Throws: An error if the data cannot be properly decoded
     public func decode(from data: Data) throws -> DNSPacket {
         Logger.dns.debug("Received \(data.hexEncodedString())")

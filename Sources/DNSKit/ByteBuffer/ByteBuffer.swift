@@ -20,7 +20,7 @@ enum ByteBufferError: LocalizedError {
 
 }
 
-public protocol ByteBuffer {
+protocol ByteBuffer {
 
     var data: Data { get }
     var currentIndex: Data.Index { get }
