@@ -29,11 +29,13 @@ struct DNSContinuousLabelPosition: Equatable {
 
     let index: UInt16  // Start offset of the first label in the group
     let labels: [String]  // All labels that are consecutively stored
+
 }
 
 extension [DNSLabelPosition] {
 
     /// Groups label positions that are stored contiguously in the buffer.
+    ///
     /// This enables identifying full domains that can be used for compression.
     func continuousPositions() -> [DNSContinuousLabelPosition] {
         guard !isEmpty else { return [] }

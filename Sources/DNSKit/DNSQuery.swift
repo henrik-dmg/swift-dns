@@ -6,6 +6,7 @@
 //
 
 /// Represents a DNS query in the question section of a DNS message.
+///
 /// A DNS query consists of a domain name, record type, and record class.
 /// This structure is used to specify what information is being requested from a DNS server.
 public struct DNSQuery: Equatable {
@@ -13,14 +14,17 @@ public struct DNSQuery: Equatable {
     // MARK: - Properties
 
     /// The domain name being queried, represented as DNS labels.
+    ///
     /// Each label is a string component of the domain name (e.g., ["www", "example", "com"]).
     public var labels: DNSLabels
 
     /// The type of DNS record being requested (e.g., A, AAAA, MX, etc.).
+    ///
     /// This determines what kind of information is being queried for the domain.
     public var recordType: DNSRecordType
 
     /// The class of the record being requested.
+    ///
     /// For Internet DNS, this is typically IN (Internet) = 1.
     public let recordClass: UInt16
 
@@ -55,6 +59,7 @@ public struct DNSQuery: Equatable {
 extension DNSQuery: DNSPacketDecodable {
 
     /// Decodes a DNS query from a byte buffer.
+    ///
     /// The query is read in the following order:
     /// 1. Domain name (as DNS labels)
     /// 2. Record type
@@ -78,6 +83,7 @@ extension DNSQuery: DNSPacketDecodable {
 extension DNSQuery: DNSPacketEncodable {
 
     /// Encodes the DNS query into a byte buffer.
+    ///
     /// The query is written in the following order:
     /// 1. Domain name (as DNS labels)
     /// 2. Record type

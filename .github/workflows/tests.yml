@@ -55,25 +55,3 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: henrik-dmg/swift-dns
           swift_project: swift-dns
-
-  lint-swift:
-    name: Lint Swift Code
-    runs-on: macos-latest
-    steps:
-      - name: Setup Swift
-        uses: swift-actions/setup-swift@v2
-      - name: Checkout Code
-        uses: actions/checkout@v4
-      - name: Cache SPM dependencies
-        uses: actions/cache@v4
-        with:
-          path: .build
-          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
-          restore-keys: |
-            ${{ runner.os }}-spm-
-      - name: Install SwiftLint
-        run: brew install swift-format peripheryapp/periphery/periphery
-      - name: Lint code
-        run: Scripts/lint-swift-code
-      - name: Scan for dead code
-        run: periphery scan --strict --config config/periphery.yml

@@ -8,6 +8,7 @@
 // swift-format-ignore: AlwaysUseLowerCamelCase
 
 /// Represents the response code (RCODE) in a DNS message header.
+///
 /// The RCODE indicates the success or failure of a DNS query.
 /// These codes are defined in RFC 1035 and subsequent RFCs.
 public enum DNSResultCode: UInt8, Sendable {

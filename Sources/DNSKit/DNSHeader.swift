@@ -8,14 +8,17 @@
 import Foundation
 
 /// Represents the header section of a DNS message as defined in RFC 1035.
+///
 /// The header contains control information and counts for the various sections of the DNS message.
 public struct DNSHeader: Equatable, Sendable {
 
     /// A 16-bit identifier assigned by the program that generates any kind of query.
+    ///
     /// This identifier is copied in the corresponding reply and can be used to match responses with queries.
     public var id: UInt16
 
     /// Indicates whether the name server should pursue the query recursively.
+    ///
     /// If set, the name server will attempt to resolve the query by contacting other name servers if necessary.
     public var isRecursionDesired: Bool
 
@@ -26,6 +29,7 @@ public struct DNSHeader: Equatable, Sendable {
     public var isAnswerAuthorative: Bool
 
     /// A 4-bit field that specifies the kind of query in this message.
+    ///
     /// Common values include:
     /// - 0: Standard query (QUERY)
     /// - 1: Inverse query (IQUERY)
@@ -36,6 +40,7 @@ public struct DNSHeader: Equatable, Sendable {
     public var isResponse: Bool
 
     /// A 4-bit field that indicates the response code for the query.
+    ///
     /// This field is set as part of responses and indicates success or various error conditions.
     public var resultCode: DNSResultCode
 
@@ -45,7 +50,9 @@ public struct DNSHeader: Equatable, Sendable {
     /// Indicates that the data included in the response is authenticated.
     public var isAuthedData: Bool
 
-    /// Reserved for future use. Must be zero in all queries and responses.
+    /// Reserved for future use.
+    ///
+    /// Must be zero in all queries and responses.
     public var z: Bool
 
     /// Indicates whether recursive query support is available in the name server.
@@ -149,6 +156,7 @@ extension DNSHeader: DNSPacketDecodable {
 extension DNSHeader: DNSPacketEncodable {
 
     /// Encodes the DNS header into a byte buffer according to the DNS message format specification.
+    ///
     /// The encoding process follows the same structure as defined in the decoding section.
     ///
     /// - Parameter buffer: The byte buffer to write the encoded header data into
@@ -160,12 +168,14 @@ extension DNSHeader: DNSPacketEncodable {
         // Encode and write the first byte of flags (flagsA)
         let flagA =
             UInt8(isRecursionDesired ? 1 : 0) | (UInt8(isMessageTruncated ? 1 : 0) << 1)
-            | (UInt8(isAnswerAuthorative ? 1 : 0) << 2) | (opCode << 3) | (UInt8(isResponse ? 1 : 0) << 7)
+            | (UInt8(isAnswerAuthorative ? 1 : 0) << 2) | (opCode << 3)
+            | (UInt8(isResponse ? 1 : 0) << 7)
         buffer.write(flagA)
 
         // Encode and write the second byte of flags (flagsB)
         let flagB =
-            resultCode.rawValue | (UInt8(isCheckingDisabled ? 1 : 0) << 4) | (UInt8(isAuthedData ? 1 : 0) << 5)
+            resultCode.rawValue | (UInt8(isCheckingDisabled ? 1 : 0) << 4)
+            | (UInt8(isAuthedData ? 1 : 0) << 5)
             | (UInt8(z ? 1 : 0) << 6) | (UInt8(isRecursionAvailable ? 1 : 0) << 7)
         buffer.write(flagB)
 

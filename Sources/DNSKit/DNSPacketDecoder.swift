@@ -13,6 +13,7 @@ public struct DNSPacketDecoder {
     public init() {}
 
     /// Decodes a DNS packet from raw data.
+    ///
     /// The decoding process follows the DNS message format:
     /// 1. Decodes the header section
     /// 2. Decodes the question section based on the number of queries in the header

@@ -10,6 +10,7 @@ import Foundation
 // MARK: - Base Protocol
 
 /// The base protocol for all DNS resource records.
+///
 /// DNS records are the fundamental data units in the DNS system, containing information about domain names.
 /// Each record type has specific fields and data formats as defined in various RFCs.
 public protocol DNSRecord: Equatable, Sendable {
@@ -38,6 +39,7 @@ public protocol DNSRecord: Equatable, Sendable {
 extension DNSRecord {
 
     /// Encodes the complete DNS record into the provided buffer.
+    ///
     /// This includes both the common fields and the record-specific data.
     func encode(into buffer: inout ByteBufferWriting) throws {
         try encodeSharedValues(into: &buffer)
@@ -45,6 +47,7 @@ extension DNSRecord {
     }
 
     /// Encodes the common fields shared by all DNS records.
+    ///
     /// This includes the domain name, record type, class, TTL, and data length.
     func encodeSharedValues(into buffer: inout ByteBufferWriting) throws {
         try buffer.write(labels)
@@ -59,6 +62,7 @@ extension DNSRecord {
 // MARK: - Unknown Record Type
 
 /// Represents a DNS record of an unknown or unsupported type.
+///
 /// This record type is used when the DNS server returns a record type that is not explicitly supported by this implementation.
 public struct UnknownRecord: DNSRecord {
 
@@ -80,6 +84,7 @@ public struct UnknownRecord: DNSRecord {
 // MARK: - A Record
 
 /// Represents an A (Address) record, which maps a domain name to an IPv4 address.
+///
 /// A records are used to resolve hostnames to their corresponding IPv4 addresses.
 public struct ARecord: DNSRecord, CustomDebugStringConvertible {
 
@@ -108,6 +113,7 @@ public struct ARecord: DNSRecord, CustomDebugStringConvertible {
 // MARK: - AAAA Record
 
 /// Represents an AAAA (IPv6 Address) record, which maps a domain name to an IPv6 address.
+///
 /// AAAA records are used to resolve hostnames to their corresponding IPv6 addresses.
 public struct AAAARecord: DNSRecord, CustomDebugStringConvertible {
 
@@ -136,6 +142,7 @@ public struct AAAARecord: DNSRecord, CustomDebugStringConvertible {
 // MARK: - NS Record
 
 /// Represents an NS (Name Server) record, which specifies the authoritative name servers for a domain.
+///
 /// NS records are used to delegate a subdomain to a set of name servers.
 public struct NSRecord: DNSRecord {
 
@@ -157,6 +164,7 @@ public struct NSRecord: DNSRecord {
 // MARK: - CNAME Record
 
 /// Represents a CNAME (Canonical Name) record, which maps an alias name to the true or canonical name.
+///
 /// CNAME records are used to create aliases for domain names.
 public struct CNAMERecord: DNSRecord {
 
@@ -178,6 +186,7 @@ public struct CNAMERecord: DNSRecord {
 // MARK: - MX Record
 
 /// Represents an MX (Mail Exchange) record, which specifies the mail server responsible for accepting email messages on behalf of a domain.
+///
 /// MX records include a priority value to allow for multiple mail servers with different priorities.
 public struct MXRecord: DNSRecord {
 
@@ -187,7 +196,9 @@ public struct MXRecord: DNSRecord {
     public let timeToLive: UInt32
     public let lengthOfCustomData: UInt16
 
-    /// The priority of the mail server. Lower values indicate higher priority.
+    /// The priority of the mail server.
+    ///
+    /// Lower values indicate higher priority.
     public let priority: UInt16
 
     /// The domain name of the mail server.
@@ -203,6 +214,7 @@ public struct MXRecord: DNSRecord {
 // MARK: - TXT Record
 
 /// Represents a TXT (Text) record, which can contain arbitrary text data.
+///
 /// TXT records are commonly used for various purposes including SPF records, DKIM records, and general information.
 public struct TXTRecord: DNSRecord {
 

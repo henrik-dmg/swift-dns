@@ -8,6 +8,7 @@
 import Foundation
 
 /// Represents an IPv6 address in the DNS system.
+///
 /// IPv6 addresses are 128-bit addresses typically represented in hexadecimal notation
 /// with compression (e.g., 2001:db8::1). The address is stored as eight 16-bit fragments.
 public struct IPv6Address: IPAddress {
@@ -15,12 +16,14 @@ public struct IPv6Address: IPAddress {
     // MARK: - Properties
 
     /// The eight 16-bit fragments that make up the IPv6 address.
+    ///
     /// Each element in the array represents one 16-bit segment of the address.
     public let fragments: [UInt16]
 
     // MARK: - Init
 
     /// Internal initializer that creates an IPv6 address from an array of bytes.
+    ///
     /// The bytes are combined into 16-bit fragments.
     ///
     /// - Parameter fragments: An array of 16 bytes representing the IPv6 address
@@ -63,6 +66,7 @@ public struct IPv6Address: IPAddress {
     // MARK: - Formatting
 
     /// Returns a string representation of the IPv6 address in hexadecimal notation with compression.
+    ///
     /// The address is formatted according to RFC 5952, which includes:
     /// - Leading zeros in each 16-bit segment are omitted
     /// - The longest sequence of consecutive zero segments is replaced with "::"
@@ -96,6 +100,7 @@ public struct IPv6Address: IPAddress {
 extension IPv6Address: DNSPacketEncodable {
 
     /// Encodes the IPv6 address into a byte buffer for DNS message transmission.
+    ///
     /// The address is written as eight consecutive 16-bit values in network byte order.
     ///
     /// - Parameter byteBuffer: The buffer to write the encoded data to
@@ -111,6 +116,7 @@ extension IPv6Address: DNSPacketEncodable {
 extension IPv6Address: CustomDebugStringConvertible {
 
     /// Returns a debug description of the IPv6 address.
+    ///
     /// The format is "IPv6(x:x:x:x:x:x:x:x)" where x:x:x:x:x:x:x:x is the hexadecimal representation.
     public var debugDescription: String { "IPv6(\(formattedAddress())" }
 

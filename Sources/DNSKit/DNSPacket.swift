@@ -33,6 +33,7 @@ public struct DNSPacket {
 extension DNSPacket: Equatable {
 
     /// Compares two DNS packets for equality.
+    ///
     /// Two packets are considered equal if all their sections (header, queries, records, authorities, and resources)
     /// are equal in both content and order.
     public static func == (lhs: DNSPacket, rhs: DNSPacket) -> Bool {
@@ -55,6 +56,7 @@ extension DNSPacket: Equatable {
     }
 
     /// Compares two arrays of DNS records for equality.
+    ///
     /// The arrays must have the same length and each record at the same index must be equal.
     private static func areRecordArraysEqual(lhs: [any DNSRecord], rhs: [any DNSRecord]) -> Bool {
         guard lhs.count == rhs.count else {
@@ -72,6 +74,7 @@ extension DNSPacket: Equatable {
     }
 
     /// Compares two DNS records for equality.
+    ///
     /// The records must be of the same type and have equal content.
     private static func areRecordsEqual(lhs: any DNSRecord, rhs: any DNSRecord) -> Bool {
         guard lhs.recordType == rhs.recordType else {

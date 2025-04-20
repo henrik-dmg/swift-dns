@@ -9,6 +9,7 @@ public struct DNSPacketEncoder {
     public init() {}
 
     /// Encodes the DNS packet into raw data.
+    ///
     /// The encoding process follows the DNS message format and can optionally use label compression
     /// to reduce the size of the message by avoiding repetition of domain names.
     ///

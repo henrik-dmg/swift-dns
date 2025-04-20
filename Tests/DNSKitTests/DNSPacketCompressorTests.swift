@@ -11,7 +11,9 @@ struct DNSPacketCompressorTests {
 
         try compressor.write(labels)
 
-        let expected: [UInt8] = [3, 119, 119, 119, 7, 101, 120, 97, 109, 112, 108, 101, 3, 99, 111, 109, 0]
+        let expected: [UInt8] = [
+            3, 119, 119, 119, 7, 101, 120, 97, 109, 112, 108, 101, 3, 99, 111, 109, 0,
+        ]
 
         #expect(compressor.data == Data(expected))
     }

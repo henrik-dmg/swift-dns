@@ -8,10 +8,12 @@
 // swift-format-ignore: AlwaysUseLowerCamelCase
 
 /// Represents the type of a DNS resource record.
+///
 /// Each record type has a specific numeric value assigned by IANA and serves a particular purpose in the DNS system.
 public enum DNSRecordType: Sendable, Equatable, CaseIterable {
 
     /// Represents an unknown or unsupported record type.
+    ///
     /// The associated UInt16 value contains the raw numeric type code from the DNS message.
     case unknown(UInt16)
 
@@ -44,7 +46,9 @@ public enum DNSRecordType: Sendable, Equatable, CaseIterable {
     case TXT
 
     /// Returns all possible record types, including the unknown case.
-    public static var allCases: [DNSRecordType] { [.unknown(0), .A, .AAAA, .NS, .CNAME, .MX, .SOA, .TXT] }
+    public static var allCases: [DNSRecordType] {
+        [.unknown(0), .A, .AAAA, .NS, .CNAME, .MX, .SOA, .TXT]
+    }
 
 }
 
@@ -53,6 +57,7 @@ public enum DNSRecordType: Sendable, Equatable, CaseIterable {
 extension DNSRecordType: DNSPacketDecodable {
 
     /// Decodes a DNS record type from a byte buffer.
+    ///
     /// The numeric values are defined in the DNS protocol specification.
     ///
     /// - Parameter byteBuffer: The buffer containing the DNS message data
@@ -79,6 +84,7 @@ extension DNSRecordType: DNSPacketDecodable {
 extension DNSRecordType: DNSPacketEncodable {
 
     /// Encodes the DNS record type into a byte buffer.
+    ///
     /// The numeric values are defined in the DNS protocol specification.
     ///
     /// - Parameter byteBuffer: The buffer to write the encoded data to

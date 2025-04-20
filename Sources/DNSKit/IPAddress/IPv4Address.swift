@@ -6,6 +6,7 @@
 //
 
 /// Represents an IPv4 address in the DNS system.
+///
 /// IPv4 addresses are 32-bit addresses typically represented in dotted-decimal notation
 /// (e.g., 192.168.1.1). Each octet is stored as a separate byte in the fragments array.
 public struct IPv4Address: IPAddress {
@@ -13,6 +14,7 @@ public struct IPv4Address: IPAddress {
     // MARK: - Properties
 
     /// The four octets that make up the IPv4 address.
+    ///
     /// Each element in the array represents one octet of the address.
     public let fragments: [UInt8]
 
@@ -37,6 +39,7 @@ public struct IPv4Address: IPAddress {
     // MARK: - Formatting
 
     /// Returns a string representation of the IPv4 address in dotted-decimal notation.
+    ///
     /// For example, the address [192, 168, 1, 1] will be formatted as "192.168.1.1".
     ///
     /// - Returns: A string representation of the IPv4 address
@@ -49,6 +52,7 @@ public struct IPv4Address: IPAddress {
 extension IPv4Address: DNSPacketEncodable {
 
     /// Encodes the IPv4 address into a byte buffer for DNS message transmission.
+    ///
     /// The address is written as four consecutive bytes.
     ///
     /// - Parameter byteBuffer: The buffer to write the encoded data to
@@ -62,6 +66,7 @@ extension IPv4Address: DNSPacketEncodable {
 extension IPv4Address: CustomDebugStringConvertible {
 
     /// Returns a debug description of the IPv4 address.
+    ///
     /// The format is "IPv4(x.x.x.x)" where x.x.x.x is the dotted-decimal representation.
     public var debugDescription: String { "IPv4(\(formattedAddress())" }
 
