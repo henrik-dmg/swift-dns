@@ -1,6 +1,8 @@
 # swift-dns
 
 [![codecov](https://codecov.io/gh/henrik-dmg/swift-dns/graph/badge.svg?token=OHrfa9Bgbv)](https://codecov.io/gh/henrik-dmg/swift-dns)
+[![Tests](https://github.com/henrik-dmg/swift-dns/actions/workflows/tests.yml/badge.svg)](https://github.com/henrik-dmg/swift-dns/actions/workflows/tests.yml)
+[![Linting](https://github.com/henrik-dmg/swift-dns/actions/workflows/linting.yml/badge.svg)](https://github.com/henrik-dmg/swift-dns/actions/workflows/linting.yml)
 
 A Swift library for working with DNS packets. It allows decoding and encoding packets, as well as building and parsing queries and responses.
 
