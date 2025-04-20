@@ -1,21 +1,18 @@
-# This workflow will build a Swift project
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-swift
-
-name: Swift
+name: Tests
 
 on:
   push:
     branches: [main]
     paths:
-      - "Sources/**/*.swift"
-      - "Tests/**/*.swift"
+      - "Sources/"
+      - "Tests/"
       - "Package.swift"
       - "Package.resolved"
   pull_request:
     branches: [main]
     paths:
-      - "Sources/**/*.swift"
-      - "Tests/**/*.swift"
+      - "Sources/"
+      - "Tests/"
       - "Package.swift"
       - "Package.resolved"
   workflow_dispatch:

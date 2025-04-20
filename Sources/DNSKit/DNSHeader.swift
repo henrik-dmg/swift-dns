@@ -70,6 +70,7 @@ public struct DNSHeader: Equatable, Sendable {
 extension DNSHeader: DNSPacketDecodable {
 
     /// Decodes a DNS header from a byte buffer according to the DNS message format specification.
+    ///
     /// The header is structured as follows:
     ///
     /// | RFC Name | Descriptive Name     | Length             |
