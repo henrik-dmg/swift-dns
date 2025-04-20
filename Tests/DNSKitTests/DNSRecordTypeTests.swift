@@ -10,11 +10,11 @@ import Testing
 
 @testable import DNSKit
 
-@Suite struct DNSRecordTypeTests {
+@Suite
+struct DNSRecordTypeTests {
 
-    @Test("codes match type names", arguments: DNSRecordType.allCases) func recordTypeEncodesAndDecodesTheSameValue(
-        recordType: DNSRecordType
-    ) throws {
+    @Test("codes match type names", arguments: DNSRecordType.allCases)
+    func recordTypeEncodesAndDecodesTheSameValue(recordType: DNSRecordType) throws {
         var writer: any ByteBufferWriting = ByteBufferWriter()
         try recordType.encode(into: &writer)
 

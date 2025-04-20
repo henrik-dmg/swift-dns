@@ -3,9 +3,11 @@ import Testing
 
 @testable import DNSKit
 
+@Suite
 struct DNSPacketCompressorTests {
 
-    @Test("writes uncompressed labels with null terminator") func uncompressedWrite() throws {
+    @Test("writes uncompressed labels with null terminator")
+    func uncompressedWrite() throws {
         var compressor = DNSPacketCompressor()
         let labels = DNSLabels(labels: ["www", "example", "com"])
 
@@ -18,7 +20,8 @@ struct DNSPacketCompressorTests {
         #expect(compressor.data == Data(expected))
     }
 
-    @Test("writes compressed labels using pointer") func compressedWrite() throws {
+    @Test("writes compressed labels using pointer")
+    func compressedWrite() throws {
         var compressor = DNSPacketCompressor()
 
         // First write: "example.com"

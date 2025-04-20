@@ -10,7 +10,8 @@ import Testing
 
 @testable import DNSKit
 
-@Suite struct DNSPacketTests {
+@Suite
+struct DNSPacketTests {
 
     // MARK: - Decoding
 

@@ -15,7 +15,7 @@ public enum DNSRecordType: Sendable, Equatable, CaseIterable {
     /// Represents an unknown or unsupported record type.
     ///
     /// The associated UInt16 value contains the raw numeric type code from the DNS message.
-    case unknown(UInt16)
+    case unknown(UInt16 = 0)
 
     /// Address record (Type 1)
     /// Maps a hostname to an IPv4 address.

@@ -10,7 +10,8 @@ import Testing
 
 @testable import DNSKit
 
-@Suite struct ByteBufferReaderTests {
+@Suite
+struct ByteBufferReaderTests {
 
     @Test("reads uint16", arguments: [1, 2, 3, 4, 5])
     func int16(value: UInt8) throws {

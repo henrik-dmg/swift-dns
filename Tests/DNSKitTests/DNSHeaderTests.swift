@@ -10,9 +10,11 @@ import Testing
 
 @testable import DNSKit
 
-@Suite struct DNSHeaderTests {
+@Suite
+struct DNSHeaderTests {
 
-    @Test("decodes query") func query() throws {
+    @Test("decodes query")
+    func query() throws {
         let path = try #require(Bundle.module.url(forResource: "query_packet", withExtension: "txt"))
         let data = try Data(contentsOf: path)
         var byteBuffer: any ByteBufferReading = ByteBufferReader(data.prefix(12))
@@ -23,7 +25,8 @@ import Testing
         #expect(!header.isResponse)
     }
 
-    @Test("decodes response") func response() throws {
+    @Test("decodes response")
+    func response() throws {
         let path = try #require(Bundle.module.url(forResource: "response_packet", withExtension: "txt"))
         let data = try Data(contentsOf: path)
         var byteBuffer: any ByteBufferReading = ByteBufferReader(data.prefix(12))
