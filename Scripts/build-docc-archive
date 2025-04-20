@@ -20,10 +20,10 @@ swift package \
   generate-documentation \
   --target DNSKit \
   --transform-for-static-hosting \
-  --hosting-base-path swift-dns \
+  --hosting-base-path dnskit \
   --output-path "$RUNNER_TEMP/docs"
 
-echo "<script>window.location.href += \"documentation/swift-dns\"</script>" > "$RUNNER_TEMP/docs/index.html"
+echo "<script>window.location.href += \"documentation/dnskit\"</script>" > "$RUNNER_TEMP/docs/index.html"
 
 if [[ -z $GITHUB_ACTIONS ]]; then
   echo "Restoring Package.swift to original state."
