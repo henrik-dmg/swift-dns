@@ -2,19 +2,16 @@ name: Linting
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
     paths:
       - "Sources/"
       - "Tests/"
       - "Package.swift"
       - "Package.resolved"
   pull_request:
-    branches: [main]
-    paths:
-      - "Sources/"
-      - "Tests/"
-      - "Package.swift"
-      - "Package.resolved"
+    branches:
+      - main
   workflow_dispatch:
 
 jobs:
@@ -22,8 +19,10 @@ jobs:
     name: Lint Swift Code
     runs-on: macos-latest
     steps:
-      - name: Setup Swift
-        uses: swift-actions/setup-swift@v2
+      - name: Configure Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
       - name: Checkout Code
         uses: actions/checkout@v4
       - name: Cache SPM dependencies
@@ -33,17 +32,19 @@ jobs:
           key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
             ${{ runner.os }}-spm-
-      - name: Install SwiftLint
+      - name: Install swift-format
         run: brew install swift-format
       - name: Lint code
         run: Scripts/lint-swift-code
 
   scan-dead-code:
-    name: Lint Swift Code
+    name: Scan Dead Swift Code
     runs-on: macos-latest
     steps:
-      - name: Setup Swift
-        uses: swift-actions/setup-swift@v2
+      - name: Configure Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
       - name: Checkout Code
         uses: actions/checkout@v4
       - name: Cache SPM dependencies
@@ -53,7 +54,7 @@ jobs:
           key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
             ${{ runner.os }}-spm-
-      - name: Install SwiftLint
+      - name: Install periphery
         run: brew install peripheryapp/periphery/periphery
       - name: Scan for dead code
         run: periphery scan --format github-actions --config config/periphery.yml
