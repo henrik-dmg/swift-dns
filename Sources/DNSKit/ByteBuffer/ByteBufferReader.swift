@@ -23,7 +23,9 @@ protocol ByteBufferReading: ByteBuffer {
 extension ByteBufferReading {
 
     mutating func seek(_ index: Data.Index) throws {
-        guard data.indices.contains(index) else { throw ByteBufferError.indexOutOfBounds(index, data.endIndex) }
+        guard data.indices.contains(index) else {
+            throw ByteBufferError.indexOutOfBounds(index, data.endIndex)
+        }
         currentIndex = index
     }
 

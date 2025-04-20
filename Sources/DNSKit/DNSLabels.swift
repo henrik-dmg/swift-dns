@@ -97,7 +97,9 @@ extension DNSLabels: DNSPacketDecodable {
         }
 
         // Ensure we decoded at least one label
-        guard !labels.isEmpty else { throw DecoderError.noLabelsDecoded }
+        guard !labels.isEmpty else {
+            throw DecoderError.noLabelsDecoded
+        }
 
         return DNSLabels(labels: labels)
     }
