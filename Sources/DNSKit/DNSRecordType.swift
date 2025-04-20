@@ -15,39 +15,39 @@ public enum DNSRecordType: Sendable, Equatable, CaseIterable {
     /// Represents an unknown or unsupported record type.
     ///
     /// The associated UInt16 value contains the raw numeric type code from the DNS message.
-    case unknown(UInt16 = 0)
+    case unknown(UInt16)
 
     /// Address record (Type 1)
     /// Maps a hostname to an IPv4 address.
-    case A
+    case a
 
     /// IPv6 Address record (Type 28)
     /// Maps a hostname to an IPv6 address.
-    case AAAA
+    case aaaa
 
     /// Name Server record (Type 2)
     /// Delegates a DNS zone to use the given authoritative name servers.
-    case NS
+    case ns
 
     /// Canonical Name record (Type 5)
     /// Maps an alias name to the true or canonical name.
-    case CNAME
+    case cname
 
     /// Mail Exchange record (Type 15)
     /// Maps a domain name to a list of message transfer agents for that domain.
-    case MX
+    case mx
 
     /// Start of Authority record (Type 6)
     /// Specifies authoritative information about a DNS zone.
-    case SOA
+    case soa
 
     /// Text record (Type 16)
     /// Contains arbitrary text data, often used for various purposes like SPF, DKIM, etc.
-    case TXT
+    case txt
 
     /// Returns all possible record types, including the unknown case.
     public static var allCases: [DNSRecordType] {
-        [.unknown(0), .A, .AAAA, .NS, .CNAME, .MX, .SOA, .TXT]
+        [.unknown(0), .a, .aaaa, .ns, .cname, .mx, .soa, .txt]
     }
 
 }
@@ -66,13 +66,13 @@ extension DNSRecordType: DNSPacketDecodable {
     static func decode(from byteBuffer: inout any ByteBufferReading) throws -> Self {
         let integer = try byteBuffer.readUInt16()
         return switch integer {
-        case 1: .A
-        case 28: .AAAA
-        case 5: .CNAME
-        case 15: .MX
-        case 2: .NS
-        case 6: .SOA
-        case 16: .TXT
+        case 1: .a
+        case 28: .aaaa
+        case 5: .cname
+        case 15: .mx
+        case 2: .ns
+        case 6: .soa
+        case 16: .txt
         default: .unknown(integer)
         }
     }
@@ -92,14 +92,14 @@ extension DNSRecordType: DNSPacketEncodable {
     func encode(into byteBuffer: inout any ByteBufferWriting) throws {
         let integerToEncode: UInt16 =
             switch self {
+            case .a: 1
+            case .aaaa: 28
+            case .cname: 5
+            case .mx: 15
+            case .ns: 2
+            case .soa: 6
+            case .txt: 16
             case .unknown(let integer): integer
-            case .A: 1
-            case .AAAA: 28
-            case .CNAME: 5
-            case .MX: 15
-            case .NS: 2
-            case .SOA: 6
-            case .TXT: 16
             }
         byteBuffer.write(integerToEncode)
     }

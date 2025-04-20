@@ -28,35 +28,35 @@ public struct DNSHeader: Equatable, Sendable {
     /// Indicates that the responding name server is an authority for the domain name in the question section.
     public var isAnswerAuthorative: Bool
 
+    /// Indicates that checking of the response data is disabled.
+    public var isCheckingDisabled: Bool
+
+    /// Indicates that the data included in the response is authenticated.
+    public var isAuthenticatedData: Bool
+
+    /// Indicates whether recursive query support is available in the name server.
+    public var isRecursionAvailable: Bool
+
+    /// A one-bit field that specifies whether this message is a query (0) or a response (1).
+    public var isResponse: Bool
+
     /// A 4-bit field that specifies the kind of query in this message.
     ///
     /// Common values include:
     /// - 0: Standard query (QUERY)
     /// - 1: Inverse query (IQUERY)
     /// - 2: Server status request (STATUS)
-    public var opCode: UInt8
-
-    /// A one-bit field that specifies whether this message is a query (0) or a response (1).
-    public var isResponse: Bool
+    public var operationCode: DNSOperationCode
 
     /// A 4-bit field that indicates the response code for the query.
     ///
     /// This field is set as part of responses and indicates success or various error conditions.
     public var resultCode: DNSResultCode
 
-    /// Indicates that checking of the response data is disabled.
-    public var isCheckingDisabled: Bool
-
-    /// Indicates that the data included in the response is authenticated.
-    public var isAuthedData: Bool
-
     /// Reserved for future use.
     ///
     /// Must be zero in all queries and responses.
     public var z: Bool
-
-    /// Indicates whether recursive query support is available in the name server.
-    public var isRecursionAvailable: Bool
 
     /// The number of entries in the question section of the message.
     public var numberOfQueries: UInt16
@@ -98,7 +98,7 @@ extension DNSHeader: DNSPacketDecodable {
     ///
     /// - Parameter buffer: The byte buffer containing the DNS header data
     /// - Returns: A decoded DNSHeader instance
-    /// - Throws: DecoderError if the header cannot be properly decoded
+    /// - Throws: ``DecoderError`` if the header cannot be properly decoded
     static func decode(from buffer: inout ByteBufferReading) throws -> DNSHeader {
         // Read the 16-bit message identifier
         let id = try buffer.readUInt16()
@@ -109,7 +109,7 @@ extension DNSHeader: DNSPacketDecodable {
         let isRecursionDesired = (flagsA & (1 << 0)) > 0
         let isMessageTruncated = (flagsA & (1 << 1)) > 0
         let isAnswerAuthorative = (flagsA & (1 << 2)) > 0
-        let opCode = (flagsA >> 3) & 0x0F
+        let operationCodeValue = (flagsA >> 3) & 0x0F
         let isResponse = (flagsA & (1 << 7)) > 0
 
         // Read second byte of flags (flagsB)
@@ -117,7 +117,7 @@ extension DNSHeader: DNSPacketDecodable {
         // Extract individual flags from the second byte
         let resultCode = DNSResultCode(rawValue: flagsB & 0x0F)
         let isCheckingDisabled = (flagsB & (1 << 4)) > 0
-        let isAuthedData = (flagsB & (1 << 5)) > 0
+        let isAuthenticatedData = (flagsB & (1 << 5)) > 0
         let z = (flagsB & (1 << 6)) > 0
         let isRecursionAvailable = (flagsB & (1 << 7)) > 0
 
@@ -127,21 +127,27 @@ extension DNSHeader: DNSPacketDecodable {
         let numberOfAuthorities = try buffer.readUInt16()
         let numberOfResources = try buffer.readUInt16()
 
+        guard let operationCode = DNSOperationCode(rawValue: operationCodeValue) else {
+            throw DecoderError.cantReadOpCode(operationCodeValue)
+        }
+
         // Validate the result code
-        guard let resultCode else { throw DecoderError.cantReadResultCode(flagsB & 0x0F) }
+        guard let resultCode else {
+            throw DecoderError.cantReadResultCode(flagsB & 0x0F)
+        }
 
         return DNSHeader(
             id: id,
             isRecursionDesired: isRecursionDesired,
             isMessageTruncated: isMessageTruncated,
             isAnswerAuthorative: isAnswerAuthorative,
-            opCode: opCode,
-            isResponse: isResponse,
-            resultCode: resultCode,
             isCheckingDisabled: isCheckingDisabled,
-            isAuthedData: isAuthedData,
-            z: z,
+            isAuthenticatedData: isAuthenticatedData,
             isRecursionAvailable: isRecursionAvailable,
+            isResponse: isResponse,
+            operationCode: operationCode,
+            resultCode: resultCode,
+            z: z,
             numberOfQueries: numberOfQueries,
             numberOfRecords: numberOfRecords,
             numberOfAuthorities: numberOfAuthorities,
@@ -168,14 +174,14 @@ extension DNSHeader: DNSPacketEncodable {
         // Encode and write the first byte of flags (flagsA)
         let flagA =
             UInt8(isRecursionDesired ? 1 : 0) | (UInt8(isMessageTruncated ? 1 : 0) << 1)
-            | (UInt8(isAnswerAuthorative ? 1 : 0) << 2) | (opCode << 3)
+            | (UInt8(isAnswerAuthorative ? 1 : 0) << 2) | (operationCode.rawValue << 3)
             | (UInt8(isResponse ? 1 : 0) << 7)
         buffer.write(flagA)
 
         // Encode and write the second byte of flags (flagsB)
         let flagB =
             resultCode.rawValue | (UInt8(isCheckingDisabled ? 1 : 0) << 4)
-            | (UInt8(isAuthedData ? 1 : 0) << 5)
+            | (UInt8(isAuthenticatedData ? 1 : 0) << 5)
             | (UInt8(z ? 1 : 0) << 6) | (UInt8(isRecursionAvailable ? 1 : 0) << 7)
         buffer.write(flagB)
 

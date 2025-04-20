@@ -47,7 +47,7 @@ struct DNSPacketTests {
         #expect(firstQuery.labels.labels == ["google", "com"])
 
         let firstRecord = try #require(packet.records.first as? ARecord)
-        #expect(firstRecord.recordType == .A)
+        #expect(firstRecord.recordType == .a)
         #expect(firstRecord.labels.labels == ["google", "com"])
         #expect(firstRecord.address.fragments == [216, 58, 215, 78])
     }
@@ -84,27 +84,27 @@ struct DNSPacketTests {
 
     @Test("encodes custom package")
     func encodeCustomPackage() throws {
-        let dnsQuery1 = DNSQuery(labels: ["mail", "google", "com"], recordType: .A, recordClass: 1)
-        let dnsQuery2 = DNSQuery(labels: ["google", "com"], recordType: .A, recordClass: 1)
-        let dnsQuery3 = DNSQuery(labels: ["panhans", "dev"], recordType: .A, recordClass: 1)
+        let dnsQuery1 = DNSQuery(labels: ["mail", "google", "com"], recordType: .a, recordClass: 1)
+        let dnsQuery2 = DNSQuery(labels: ["google", "com"], recordType: .a, recordClass: 1)
+        let dnsQuery3 = DNSQuery(labels: ["panhans", "dev"], recordType: .a, recordClass: 1)
 
         let dnsRecord1 = ARecord(
             labels: DNSLabels(labels: ["mail", "google", "com"]),
-            recordType: .A,
+            recordType: .a,
             recordClass: 1,
             timeToLive: 100,
             address: IPv4Address(192, 168, 178, 1)
         )
         let dnsRecord2 = ARecord(
             labels: DNSLabels(labels: ["google", "com"]),
-            recordType: .A,
+            recordType: .a,
             recordClass: 1,
             timeToLive: 100,
             address: IPv4Address(192, 168, 178, 2)
         )
         let dnsRecord3 = ARecord(
             labels: DNSLabels(labels: ["panhans", "dev"]),
-            recordType: .A,
+            recordType: .a,
             recordClass: 1,
             timeToLive: 100,
             address: IPv4Address(192, 168, 178, 3)
@@ -141,11 +141,11 @@ struct DNSPacketTests {
 
     @Test("packets are equal")
     func packetsAreEqual() {
-        let dnsQuery1 = DNSQuery(labels: ["mail", "google", "com"], recordType: .A, recordClass: 1)
+        let dnsQuery1 = DNSQuery(labels: ["mail", "google", "com"], recordType: .a, recordClass: 1)
 
         let dnsRecord1 = ARecord(
             labels: DNSLabels(labels: ["mail", "google", "com"]),
-            recordType: .A,
+            recordType: .a,
             recordClass: 1,
             timeToLive: 100,
             address: IPv4Address(192, 168, 178, 1)
@@ -173,14 +173,14 @@ struct DNSPacketTests {
     func packetsAreNotEqual() {
         let dnsRecord1 = ARecord(
             labels: DNSLabels(labels: ["mail", "google", "com"]),
-            recordType: .A,
+            recordType: .a,
             recordClass: 1,
             timeToLive: 100,
             address: IPv4Address(192, 168, 178, 1)
         )
         let dnsRecord2 = ARecord(
             labels: DNSLabels(labels: ["google", "com"]),
-            recordType: .A,
+            recordType: .a,
             recordClass: 1,
             timeToLive: 100,
             address: IPv4Address(192, 168, 178, 2)
@@ -213,13 +213,13 @@ extension DNSHeader {
         isRecursionDesired: false,
         isMessageTruncated: false,
         isAnswerAuthorative: true,
-        opCode: 1,
-        isResponse: true,
-        resultCode: .NOERROR,
         isCheckingDisabled: false,
-        isAuthedData: true,
-        z: false,
+        isAuthenticatedData: true,
         isRecursionAvailable: true,
+        isResponse: true,
+        operationCode: .inverseQuery,
+        resultCode: .noError,
+        z: false,
         numberOfQueries: 3,
         numberOfRecords: 3,
         numberOfAuthorities: 0,

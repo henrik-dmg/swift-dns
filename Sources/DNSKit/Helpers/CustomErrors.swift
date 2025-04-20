@@ -14,6 +14,7 @@ enum DecoderError: LocalizedError {
     case maximumNumberOfJumpsReached
     case cantReadRecordType(rawValue: UInt16)
     case cantReadResultCode(UInt8)
+    case cantReadOpCode(UInt8)
     case invalidIPv6Address(bytes: Data)
 
     var errorDescription: String? {
@@ -23,6 +24,7 @@ enum DecoderError: LocalizedError {
         case .maximumNumberOfJumpsReached: "Maximum number of jumps reached"
         case .cantReadRecordType(let rawValue): "Can't read record type \(rawValue)"
         case .cantReadResultCode(let uInt8): "Can't read result code \(uInt8)"
+        case .cantReadOpCode(let uInt8): "Can't read opcode \(uInt8)"
         case .invalidIPv6Address(let bytes): "Invalid IPv6 address \(bytes.hexEncodedString())"
         }
     }

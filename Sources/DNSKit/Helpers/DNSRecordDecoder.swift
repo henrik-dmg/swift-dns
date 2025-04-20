@@ -21,7 +21,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
         let customData = try byteBuffer.readBytes(Int(lengthOfCustomData))
 
         switch recordType {
-        case .A:
+        case .a:
             return ARecord(
                 labels: labels,
                 recordType: recordType,
@@ -29,7 +29,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 timeToLive: timeToLive,
                 address: IPv4Address(fragments: Array(customData))
             )
-        case .AAAA:
+        case .aaaa:
             return AAAARecord(
                 labels: labels,
                 recordType: recordType,
@@ -37,7 +37,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 timeToLive: timeToLive,
                 address: try IPv6Address(fragments: Array(customData))
             )
-        case .NS:
+        case .ns:
             return NSRecord(
                 labels: labels,
                 recordType: recordType,
@@ -46,7 +46,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 lengthOfCustomData: lengthOfCustomData,
                 paylodLabels: try DNSLabels.decode(from: &byteBuffer)
             )
-        case .CNAME:
+        case .cname:
             return CNAMERecord(
                 labels: labels,
                 recordType: recordType,
@@ -55,7 +55,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 lengthOfCustomData: lengthOfCustomData,
                 paylodLabels: try DNSLabels.decode(from: &byteBuffer)
             )
-        case .MX:
+        case .mx:
             return MXRecord(
                 labels: labels,
                 recordType: recordType,
@@ -65,7 +65,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 priority: try byteBuffer.readUInt16(),
                 paylodLabels: try DNSLabels.decode(from: &byteBuffer)
             )
-        case .TXT:
+        case .txt:
             let lengthOfString = customData[0]
             let contentData = customData.dropFirst()
             guard let content = String(data: contentData, encoding: .ascii), content.count == Int(lengthOfString) else {
@@ -79,7 +79,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 timeToLive: timeToLive,
                 content: content
             )
-        case .SOA, .unknown:
+        case .soa, .unknown:
             return UnknownRecord(
                 labels: labels,
                 recordType: recordType,

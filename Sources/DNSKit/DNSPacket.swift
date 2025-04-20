@@ -37,10 +37,7 @@ extension DNSPacket: Equatable {
     /// Two packets are considered equal if all their sections (header, queries, records, authorities, and resources)
     /// are equal in both content and order.
     public static func == (lhs: DNSPacket, rhs: DNSPacket) -> Bool {
-        let headersEqual = lhs.header == rhs.header
-        let queriesEqual = lhs.queries == rhs.queries
-
-        guard headersEqual && queriesEqual else {
+        guard lhs.header == rhs.header && lhs.queries == rhs.queries else {
             return false
         }
 
@@ -85,19 +82,19 @@ extension DNSPacket: Equatable {
         return switch lhs.recordType {
         case .unknown:
             areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: UnknownRecord.self)
-        case .A:
+        case .a:
             areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: ARecord.self)
-        case .AAAA:
+        case .aaaa:
             areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: AAAARecord.self)
-        case .NS:
+        case .ns:
             areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: NSRecord.self)
-        case .CNAME:
+        case .cname:
             areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: CNAMERecord.self)
-        case .MX:
+        case .mx:
             areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: MXRecord.self)
-        case .SOA:
+        case .soa:
             areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: UnknownRecord.self)
-        case .TXT:
+        case .txt:
             areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: TXTRecord.self)
         }
     }

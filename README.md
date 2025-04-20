@@ -5,6 +5,7 @@
 [![Linting](https://github.com/henrik-dmg/swift-dns/actions/workflows/linting.yml/badge.svg)](https://github.com/henrik-dmg/swift-dns/actions/workflows/linting.yml)
 
 A Swift library for working with DNS packets. It allows decoding and encoding packets, as well as building and parsing queries and responses.
+Built based on Emil Hernvall's [dnsguide](https://github.com/EmilHernvall/dnsguide).
 
 ## Installation
 
@@ -16,6 +17,12 @@ dependencies: [
 ]
 ```
 
+Then add the library as a dependency to your target:
+
+```swift
+.product(name: "DNSKit", package: "swift-dns")
+```
+
 Or if you're using Xcode, enter the following URL in the `Package URL` field:
 
 ```
@@ -24,15 +31,13 @@ https://github.com/henrik-dmg/swift-dns.git
 
 ## Usage
 
-The documentation can be found at https://henrik-dmg.github.io/swift-dns/documentation/dnskit/
+The documentation can be found at https://henrik-dmg.github.io/swift-dns
 
 ### Decoding a packet
 
 Decoding a packet from bytes is straightforward, simply call `DNSPacket.decode(from:)`.
 
 ```swift
-import DNSKit
-
 let data: Data // Bytes you received from somewhere else
 let decoder = DNSPacketDecoder() // Create a decoder
 let packet = try decoder.decode(from: data)
