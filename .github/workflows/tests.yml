@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths:
-      - "Sources/"
-      - "Tests/"
+      - "Sources/**"
+      - "Tests/**"
       - "Package.swift"
       - "Package.resolved"
   pull_request:

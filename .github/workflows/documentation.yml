@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths:
-      - "Sources/"
-      - "Tests/"
+      - "Sources/**"
+      - "Tests/**"
       - "**/*.md"
   workflow_dispatch:
 
