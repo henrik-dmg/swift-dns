@@ -9,18 +9,14 @@ fi
 
 cp Package.swift Package.backup
 
-sed '/swift-log.git/a\
-, .package(url: "https://github.com/apple/swift-docc-plugin", branch: "main"),\
-' "Package.swift" > "Package.tmp"
-
-mv "Package.tmp" "Package.swift"
+swift package add-dependency https://github.com/apple/swift-docc-plugin --branch main
 
 swift package \
   --allow-writing-to-directory "$RUNNER_TEMP/docs" \
   generate-documentation \
   --target DNSKit \
   --transform-for-static-hosting \
-  --hosting-base-path dnskit \
+  --hosting-base-path swift-dns \
   --output-path "$RUNNER_TEMP/docs"
 
 echo "<script>window.location.href += \"documentation/dnskit\"</script>" > "$RUNNER_TEMP/docs/index.html"
