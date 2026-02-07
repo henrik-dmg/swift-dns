@@ -26,13 +26,13 @@ public struct DNSPacketDecoder {
     /// - Returns: A  ``DNSPacket`` instance
     /// - Throws: An error if the data cannot be properly decoded
     public func decode(from data: Data) throws -> DNSPacket {
-        Logger.dns.debug("Received \(data.hexEncodedString())")
+        Logger.decoder.debug("Received \(data.hexEncodedString())")
 
         var byteBuffer: any ByteBufferReading = ByteBufferReader(data)
 
         // Decode the header section
         let header = try DNSHeader.decode(from: &byteBuffer)
-        Logger.dns.debug("\(header)")
+        Logger.decoder.debug("\(header)")
 
         // Decode the question section
         var queries: [DNSQuery] = []
@@ -62,7 +62,7 @@ public struct DNSPacketDecoder {
             resources.append(record)
         }
 
-        Logger.dns.debug("ByteBuffer has parsed \(byteBuffer.currentIndex)/\(data.count) bytes")
+        Logger.decoder.debug("ByteBuffer has parsed \(byteBuffer.currentIndex)/\(data.count) bytes")
 
         return DNSPacket(
             header: header,

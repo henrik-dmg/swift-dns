@@ -1,4 +1,4 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.2
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
@@ -10,7 +10,7 @@ let package = Package(
         .iOS(.v16),
     ],
     products: [
-        .library(name: "DNSKit", targets: ["DNSKit"])
+        .library(name: "DNS", targets: ["DNSKit"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-log.git", .upToNextMajor(from: "1.0.0"))
