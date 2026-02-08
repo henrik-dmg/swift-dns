@@ -239,4 +239,163 @@ struct DNSRecordDecoderTests {
         #expect(aRecord.address.fragments == [192, 168, 1, 1])
     }
 
+    // MARK: - SOA Record Decoding
+
+    @Test("decodes SOA record with all fields")
+    func decodeSOARecord() throws {
+        // This test verifies that SOA records correctly decode all fields:
+        // - Primary name server (MNAME)
+        // - Responsible mailbox (RNAME)
+        // - Serial, Refresh, Retry, Expire, Minimum (5 x UInt32)
+        //
+        // Structure of an SOA record:
+        // - Name: "example.com"
+        // - Type: 6 (SOA)
+        // - Class: 1 (IN)
+        // - TTL: 3600
+        // - RDLENGTH: calculated
+        // - RDATA:
+        //   - MNAME: "ns1.example.com"
+        //   - RNAME: "admin.example.com"
+        //   - SERIAL: 1 (0x00000001)
+        //   - REFRESH: 2 (0x00000002)
+        //   - RETRY: 3 (0x00000003)
+        //   - EXPIRE: 4 (0x00000004)
+        //   - MINIMUM: 5 (0x00000005)
+
+        var data = Data()
+
+        // Record name: "example.com"
+        data.append(contentsOf: [0x07])  // length 7
+        data.append(contentsOf: "example".data(using: .ascii)!)
+        data.append(contentsOf: [0x03])  // length 3
+        data.append(contentsOf: "com".data(using: .ascii)!)
+        data.append(contentsOf: [0x00])  // null terminator
+
+        // Type: SOA (6)
+        data.append(contentsOf: [0x00, 0x06])
+
+        // Class: IN (1)
+        data.append(contentsOf: [0x00, 0x01])
+
+        // TTL: 3600 (0x00000E10)
+        data.append(contentsOf: [0x00, 0x00, 0x0E, 0x10])
+
+        // RDLENGTH: We need to calculate this
+        // MNAME: "ns1.example.com" = 1+3+1+7+1+3+1 = 17 bytes
+        // RNAME: "admin.example.com" = 1+5+1+7+1+3+1 = 19 bytes
+        // 5 x UInt32 = 20 bytes
+        // Total: 17 + 19 + 20 = 56 bytes (0x0038)
+        data.append(contentsOf: [0x00, 0x38])
+
+        // RDATA:
+        // MNAME: "ns1.example.com"
+        data.append(contentsOf: [0x03])
+        data.append(contentsOf: "ns1".data(using: .ascii)!)
+        data.append(contentsOf: [0x07])
+        data.append(contentsOf: "example".data(using: .ascii)!)
+        data.append(contentsOf: [0x03])
+        data.append(contentsOf: "com".data(using: .ascii)!)
+        data.append(contentsOf: [0x00])
+
+        // RNAME: "admin.example.com"
+        data.append(contentsOf: [0x05])
+        data.append(contentsOf: "admin".data(using: .ascii)!)
+        data.append(contentsOf: [0x07])
+        data.append(contentsOf: "example".data(using: .ascii)!)
+        data.append(contentsOf: [0x03])
+        data.append(contentsOf: "com".data(using: .ascii)!)
+        data.append(contentsOf: [0x00])
+
+        // SERIAL: 1 (0x00000001)
+        data.append(contentsOf: [0x00, 0x00, 0x00, 0x01])
+
+        // REFRESH: 2 (0x00000002)
+        data.append(contentsOf: [0x00, 0x00, 0x00, 0x02])
+
+        // RETRY: 3 (0x00000003)
+        data.append(contentsOf: [0x00, 0x00, 0x00, 0x03])
+
+        // EXPIRE: 4 (0x00000004)
+        data.append(contentsOf: [0x00, 0x00, 0x00, 0x04])
+
+        // MINIMUM: 5 (0x00000005)
+        data.append(contentsOf: [0x00, 0x00, 0x00, 0x05])
+
+        var buffer: any ByteBufferReading = ByteBufferReader(data)
+
+        let record = try DNSRecordDecoder.decode(from: &buffer)
+
+        // Verify record type
+        #expect(record.recordType == .soa)
+
+        // Verify it's an SOA record
+        let soaRecord = try #require(record as? SOARecord)
+
+        // Verify record name
+        #expect(soaRecord.labels.labels == ["example", "com"])
+
+        // Verify primary name server
+        #expect(
+            soaRecord.primaryNameServer.labels == ["ns1", "example", "com"],
+            "SOA primary name server should be ['ns1', 'example', 'com'], got \(soaRecord.primaryNameServer.labels)"
+        )
+
+        // Verify responsible mailbox
+        #expect(
+            soaRecord.responsibleMailbox.labels == ["admin", "example", "com"],
+            "SOA responsible mailbox should be ['admin', 'example', 'com'], got \(soaRecord.responsibleMailbox.labels)"
+        )
+
+        // Verify numeric fields
+        #expect(soaRecord.serial == 1, "Serial should be 1, got \(soaRecord.serial)")
+        #expect(soaRecord.refresh == 2, "Refresh should be 2, got \(soaRecord.refresh)")
+        #expect(soaRecord.retry == 3, "Retry should be 3, got \(soaRecord.retry)")
+        #expect(soaRecord.expire == 4, "Expire should be 4, got \(soaRecord.expire)")
+        #expect(soaRecord.minimum == 5, "Minimum should be 5, got \(soaRecord.minimum)")
+    }
+
+    @Test("encodes and decodes SOA record round-trip")
+    func encodeDecodeSOARecordRoundTrip() throws {
+        // Create an SOA record
+        let originalRecord = SOARecord(
+            labels: DNSLabels(labels: ["example", "com"]),
+            recordType: .soa,
+            recordClass: 1,
+            timeToLive: 3600,
+            lengthOfCustomData: 56,
+            primaryNameServer: DNSLabels(labels: ["ns1", "example", "com"]),
+            responsibleMailbox: DNSLabels(labels: ["admin", "example", "com"]),
+            serial: 2_024_010_101,
+            refresh: 7200,
+            retry: 3600,
+            expire: 1_209_600,
+            minimum: 86400
+        )
+
+        // Encode it
+        var buffer: any ByteBufferWriting = ByteBufferWriter()
+        try originalRecord.encode(into: &buffer)
+        let encodedData = buffer.data
+
+        // Decode it back
+        var readBuffer: any ByteBufferReading = ByteBufferReader(encodedData)
+        let decodedRecord = try DNSRecordDecoder.decode(from: &readBuffer)
+
+        // Verify it's the same
+        let soaRecord = try #require(decodedRecord as? SOARecord)
+
+        #expect(soaRecord.labels.labels == originalRecord.labels.labels)
+        #expect(soaRecord.recordType == originalRecord.recordType)
+        #expect(soaRecord.recordClass == originalRecord.recordClass)
+        #expect(soaRecord.timeToLive == originalRecord.timeToLive)
+        #expect(soaRecord.primaryNameServer.labels == originalRecord.primaryNameServer.labels)
+        #expect(soaRecord.responsibleMailbox.labels == originalRecord.responsibleMailbox.labels)
+        #expect(soaRecord.serial == originalRecord.serial)
+        #expect(soaRecord.refresh == originalRecord.refresh)
+        #expect(soaRecord.retry == originalRecord.retry)
+        #expect(soaRecord.expire == originalRecord.expire)
+        #expect(soaRecord.minimum == originalRecord.minimum)
+    }
+
 }
