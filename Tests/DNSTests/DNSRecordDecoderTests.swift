@@ -73,8 +73,8 @@ struct DNSRecordDecoderTests {
         let nsRecord = try #require(record as? NSRecord)
 
         #expect(
-            nsRecord.paylodLabels.labels == ["ns1", "example", "com"],
-            "NS record should have payload labels ['ns1', 'example', 'com'], got \(nsRecord.paylodLabels.labels)"
+            nsRecord.payloadLabels.labels == ["ns1", "example", "com"],
+            "NS record should have payload labels ['ns1', 'example', 'com'], got \(nsRecord.payloadLabels.labels)"
         )
 
         // Verify record name
@@ -122,8 +122,8 @@ struct DNSRecordDecoderTests {
         let cnameRecord = try #require(record as? CNAMERecord)
 
         #expect(
-            cnameRecord.paylodLabels.labels == ["example", "com"],
-            "CNAME should point to ['example', 'com'], got \(cnameRecord.paylodLabels.labels)"
+            cnameRecord.payloadLabels.labels == ["example", "com"],
+            "CNAME should point to ['example', 'com'], got \(cnameRecord.payloadLabels.labels)"
         )
     }
 
@@ -173,8 +173,8 @@ struct DNSRecordDecoderTests {
 
         #expect(mxRecord.priority == 10, "MX priority should be 10, got \(mxRecord.priority)")
         #expect(
-            mxRecord.paylodLabels.labels == ["mail", "example", "com"],
-            "MX should have mail server ['mail', 'example', 'com'], got \(mxRecord.paylodLabels.labels)"
+            mxRecord.payloadLabels.labels == ["mail", "example", "com"],
+            "MX should have mail server ['mail', 'example', 'com'], got \(mxRecord.payloadLabels.labels)"
         )
     }
 
@@ -230,7 +230,7 @@ struct DNSRecordDecoderTests {
         // Decode first record (NS)
         let record1 = try DNSRecordDecoder.decode(from: &buffer)
         let nsRecord = try #require(record1 as? NSRecord)
-        #expect(nsRecord.paylodLabels.labels == ["ns1", "example", "com"])
+        #expect(nsRecord.payloadLabels.labels == ["ns1", "example", "com"])
 
         // Decode second record (A) - this would fail with buffer corruption bug
         let record2 = try DNSRecordDecoder.decode(from: &buffer)

@@ -16,7 +16,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
         let recordType = try DNSRecordType.decode(from: &byteBuffer)
         let recordClass = try byteBuffer.readUInt16()
         let timeToLive = try byteBuffer.readUInt32()
-        let lengthOfCustomData = try byteBuffer.readUInt16()
+        let lengthOfCustomData = Int(try byteBuffer.readUInt16())
 
         // Save the position where RDATA starts for records that need full packet access
         let rdataStartIndex = byteBuffer.currentIndex
@@ -25,9 +25,9 @@ extension DNSRecordDecoder: DNSPacketDecodable {
         case .a:
             // Decodes an IPv4 A record
             guard lengthOfCustomData == 4 else {
-                throw DecoderError.rdataLengthMismatch(expected: 4, actual: Int(lengthOfCustomData))
+                throw DecoderError.rdataLengthMismatch(expected: 4, actual: lengthOfCustomData)
             }
-            let fragments = try byteBuffer.readBytes(Int(lengthOfCustomData))
+            let fragments = try byteBuffer.readBytes(lengthOfCustomData)
             return ARecord(
                 labels: labels,
                 recordType: recordType,
@@ -38,9 +38,9 @@ extension DNSRecordDecoder: DNSPacketDecodable {
         case .aaaa:
             // Decodes an IPv6 AAAA record
             guard lengthOfCustomData == 16 else {
-                throw DecoderError.rdataLengthMismatch(expected: 16, actual: Int(lengthOfCustomData))
+                throw DecoderError.rdataLengthMismatch(expected: 16, actual: lengthOfCustomData)
             }
-            let fragments = try byteBuffer.readBytes(Int(lengthOfCustomData))
+            let fragments = try byteBuffer.readBytes(lengthOfCustomData)
             return AAAARecord(
                 labels: labels,
                 recordType: recordType,
@@ -55,15 +55,17 @@ extension DNSRecordDecoder: DNSPacketDecodable {
             nsBuffer.currentIndex = rdataStartIndex
             let payloadLabels = try DNSLabels.decode(from: &nsBuffer)
             let bytesRead = nsBuffer.currentIndex - rdataStartIndex
-            guard bytesRead == Int(lengthOfCustomData) else {
-                throw DecoderError.rdataLengthMismatch(expected: Int(lengthOfCustomData), actual: bytesRead)
+            guard bytesRead == lengthOfCustomData else {
+                throw DecoderError.rdataLengthMismatch(expected: lengthOfCustomData, actual: bytesRead)
             }
+            // Advance the original buffer past the RDATA section
+            byteBuffer.currentIndex = rdataStartIndex + lengthOfCustomData
             return NSRecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
-                lengthOfCustomData: lengthOfCustomData,
+                lengthOfCustomData: UInt16(lengthOfCustomData),
                 payloadLabels: payloadLabels
             )
         case .cname:
@@ -73,15 +75,17 @@ extension DNSRecordDecoder: DNSPacketDecodable {
             cnameBuffer.currentIndex = rdataStartIndex
             let payloadLabels = try DNSLabels.decode(from: &cnameBuffer)
             let bytesRead = cnameBuffer.currentIndex - rdataStartIndex
-            guard bytesRead == Int(lengthOfCustomData) else {
-                throw DecoderError.rdataLengthMismatch(expected: Int(lengthOfCustomData), actual: bytesRead)
+            guard bytesRead == lengthOfCustomData else {
+                throw DecoderError.rdataLengthMismatch(expected: lengthOfCustomData, actual: bytesRead)
             }
+            // Advance the original buffer past the RDATA section
+            byteBuffer.currentIndex = rdataStartIndex + lengthOfCustomData
             return CNAMERecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
-                lengthOfCustomData: lengthOfCustomData,
+                lengthOfCustomData: UInt16(lengthOfCustomData),
                 payloadLabels: payloadLabels
             )
         case .mx:
@@ -92,15 +96,17 @@ extension DNSRecordDecoder: DNSPacketDecodable {
             let priority = try mxBuffer.readUInt16()
             let payloadLabels = try DNSLabels.decode(from: &mxBuffer)
             let bytesRead = mxBuffer.currentIndex - rdataStartIndex
-            guard bytesRead == Int(lengthOfCustomData) else {
-                throw DecoderError.rdataLengthMismatch(expected: Int(lengthOfCustomData), actual: bytesRead)
+            guard bytesRead == lengthOfCustomData else {
+                throw DecoderError.rdataLengthMismatch(expected: lengthOfCustomData, actual: bytesRead)
             }
+            // Advance the original buffer past the RDATA section
+            byteBuffer.currentIndex = rdataStartIndex + lengthOfCustomData
             return MXRecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
-                lengthOfCustomData: lengthOfCustomData,
+                lengthOfCustomData: UInt16(lengthOfCustomData),
                 priority: priority,
                 payloadLabels: payloadLabels
             )
@@ -117,15 +123,17 @@ extension DNSRecordDecoder: DNSPacketDecodable {
             let expire = try soaBuffer.readUInt32()
             let minimum = try soaBuffer.readUInt32()
             let bytesRead = soaBuffer.currentIndex - rdataStartIndex
-            guard bytesRead == Int(lengthOfCustomData) else {
-                throw DecoderError.rdataLengthMismatch(expected: Int(lengthOfCustomData), actual: bytesRead)
+            guard bytesRead == lengthOfCustomData else {
+                throw DecoderError.rdataLengthMismatch(expected: lengthOfCustomData, actual: bytesRead)
             }
+            // Advance the original buffer past the RDATA section
+            byteBuffer.currentIndex = rdataStartIndex + lengthOfCustomData
             return SOARecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
-                lengthOfCustomData: lengthOfCustomData,
+                lengthOfCustomData: UInt16(lengthOfCustomData),
                 primaryNameServer: primaryNameServer,
                 responsibleMailbox: responsibleMailbox,
                 serial: serial,
@@ -136,7 +144,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
             )
         case .txt:
             // Decodes an arbitrary TXT record
-            let customData = try byteBuffer.readBytes(Int(lengthOfCustomData))
+            let customData = try byteBuffer.readBytes(lengthOfCustomData)
             let lengthOfString = customData[0]
             let contentData = customData.dropFirst()
             guard let content = String(data: contentData, encoding: .ascii), content.count == Int(lengthOfString) else {
@@ -151,13 +159,13 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 content: content
             )
         case .unknown:
-            let customData = try byteBuffer.readBytes(Int(lengthOfCustomData))
+            let customData = try byteBuffer.readBytes(lengthOfCustomData)
             return UnknownRecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
-                lengthOfCustomData: lengthOfCustomData,
+                lengthOfCustomData: UInt16(lengthOfCustomData),
                 bytes: customData
             )
         }
