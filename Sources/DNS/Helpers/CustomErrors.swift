@@ -16,6 +16,7 @@ enum DecoderError: LocalizedError {
     case cantReadResultCode(UInt8)
     case cantReadOpCode(UInt8)
     case invalidIPv6Address(bytes: Data)
+    case rdataLengthMismatch(expected: Int, actual: Int)
 
     var errorDescription: String? {
         switch self {
@@ -26,6 +27,8 @@ enum DecoderError: LocalizedError {
         case .cantReadResultCode(let uInt8): "Can't read result code \(uInt8)"
         case .cantReadOpCode(let uInt8): "Can't read opcode \(uInt8)"
         case .invalidIPv6Address(let bytes): "Invalid IPv6 address \(bytes.hexEncodedString())"
+        case .rdataLengthMismatch(let expected, let actual):
+            "RDATA length mismatch: expected \(expected) bytes, read \(actual)"
         }
     }
 
