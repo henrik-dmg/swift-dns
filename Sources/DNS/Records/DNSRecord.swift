@@ -34,7 +34,7 @@ public protocol DNSRecord: Equatable, Sendable {
 
 protocol DNSRecordEncodable {
 
-    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws
+    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws(EncoderError)
 
 }
 
@@ -79,7 +79,7 @@ public struct UnknownRecord: DNSRecord, DNSRecordEncodable {
     /// The raw bytes of the record data.
     public let bytes: Data
 
-    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
+    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws(EncoderError) {
         buffer.write(bytes)
     }
 
@@ -108,7 +108,7 @@ public struct ARecord: DNSRecord, CustomDebugStringConvertible, DNSRecordEncodab
         "A(\(labels.labels), class \(recordClass), TTL \(timeToLive), IP: \(address))"
     }
 
-    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
+    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws(EncoderError) {
         try address.encode(into: &buffer)
     }
 
@@ -137,7 +137,7 @@ public struct AAAARecord: DNSRecord, CustomDebugStringConvertible, DNSRecordEnco
         "AAAA(\(labels.labels), class \(recordClass), TTL \(timeToLive), IP: \(address))"
     }
 
-    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
+    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws(EncoderError) {
         try address.encode(into: &buffer)
     }
 
@@ -159,7 +159,7 @@ public struct NSRecord: DNSRecord, DNSRecordEncodable {
     /// The domain name of the name server.
     public let payloadLabels: DNSLabels
 
-    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
+    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws(EncoderError) {
         try buffer.write(payloadLabels)
     }
 
@@ -181,7 +181,7 @@ public struct CNAMERecord: DNSRecord, DNSRecordEncodable {
     /// The canonical domain name that the alias points to.
     public let payloadLabels: DNSLabels
 
-    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
+    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws(EncoderError) {
         try buffer.write(payloadLabels)
     }
 
@@ -208,7 +208,7 @@ public struct MXRecord: DNSRecord, DNSRecordEncodable {
     /// The domain name of the mail server.
     public let payloadLabels: DNSLabels
 
-    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
+    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws(EncoderError) {
         buffer.write(priority)
         try buffer.write(payloadLabels)
     }
@@ -255,7 +255,7 @@ public struct SOARecord: DNSRecord, DNSRecordEncodable {
     /// The minimum TTL field that should be exported with any RR from this zone.
     public let minimum: UInt32
 
-    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
+    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws(EncoderError) {
         try buffer.write(primaryNameServer)
         try buffer.write(responsibleMailbox)
         buffer.write(serial)
@@ -286,7 +286,7 @@ public struct TXTRecord: DNSRecord, DNSRecordEncodable {
         UInt16(content.count) + 1  // + 1 because one byte is added to define the length of the following string
     }
 
-    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
+    func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws(EncoderError) {
         buffer.write(UInt8(content.count))
         guard let contentData = content.data(using: .ascii) else {
             throw EncoderError.cantConvertStringToData(content)

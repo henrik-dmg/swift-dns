@@ -15,7 +15,7 @@ protocol ByteBufferWriting: ByteBuffer {
     mutating func write(_ value: Bool)
     mutating func write(_ bytes: [UInt8])
     mutating func write(_ data: Data)
-    mutating func write(_ labels: DNSLabels) throws
+    mutating func write(_ labels: DNSLabels) throws(EncoderError)
 
 }
 
@@ -25,11 +25,15 @@ struct ByteBufferWriter: ByteBufferWriting {
 
     private(set) var data: Data
 
-    var currentIndex: Data.Index { data.endIndex }
+    var currentIndex: Data.Index {
+        data.endIndex
+    }
 
     // MARK: - Init
 
-    init(_ data: Data = Data()) { self.data = data }
+    init(_ data: Data = Data()) {
+        self.data = data
+    }
 
     // MARK: - Methods
 
@@ -47,21 +51,31 @@ struct ByteBufferWriter: ByteBufferWriting {
         data.append(secondHalf)
     }
 
-    mutating func write(_ value: UInt8) { data.append(value) }
+    mutating func write(_ value: UInt8) {
+        data.append(value)
+    }
 
-    mutating func write(_ value: Bool) { data.append(value ? 1 : 0) }
+    mutating func write(_ value: Bool) {
+        data.append(value ? 1 : 0)
+    }
 
-    mutating func write(_ bytes: [UInt8]) { data.append(contentsOf: bytes) }
+    mutating func write(_ bytes: [UInt8]) {
+        data.append(contentsOf: bytes)
+    }
 
-    mutating func write(_ data: Data) { self.data.append(data) }
+    mutating func write(_ data: Data) {
+        self.data.append(data)
+    }
 
-    mutating func write(_ labels: DNSLabels) throws {
-        for label in labels.labels { try write(label) }
+    mutating func write(_ labels: DNSLabels) throws(EncoderError) {
+        for label in labels.labels {
+            try write(label)
+        }
         // Write single zero to signal termination of label sequence
         write(UInt8(0))
     }
 
-    mutating func write(_ label: String) throws {
+    mutating func write(_ label: String) throws(EncoderError) {
         guard label.count < 63 else {
             throw EncoderError.labelTooLong(label: label)
         }

@@ -30,6 +30,155 @@ public struct DNSPacket {
 
 }
 
+// MARK: - Init
+
+extension DNSPacket {
+
+    /// Creates a DNS packet by specifying header flags and section arrays.
+    ///
+    /// The header's section counts are derived automatically from the arrays,
+    /// so callers never need to keep them in sync manually.
+    ///
+    /// ```swift
+    /// // Simple query
+    /// let packet = try DNSPacket(
+    ///     queries: [DNSQuery(labels: ["example", "com"], recordType: .a, recordClass: 1)]
+    /// )
+    ///
+    /// // Authoritative response
+    /// let response = try DNSPacket(
+    ///     id: request.header.id,
+    ///     isResponse: true,
+    ///     isRecursionDesired: request.header.isRecursionDesired,
+    ///     isRecursionAvailable: true,
+    ///     isAnswerAuthoritative: true,
+    ///     queries: request.queries,
+    ///     records: [resolvedARecord]
+    /// )
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - id: A 16-bit packet identifier. Defaults to a random value.
+    ///   - operationCode: The kind of query. Defaults to `.query`.
+    ///   - resultCode: The response code. Defaults to `.noError`.
+    ///   - isResponse: Whether this packet is a response. Defaults to `false`.
+    ///   - isRecursionDesired: Whether recursion is desired. Defaults to `true`.
+    ///   - isRecursionAvailable: Whether recursion is available. Defaults to `false`.
+    ///   - isAnswerAuthoritative: Whether the answer is authoritative. Defaults to `false`.
+    ///   - isMessageTruncated: Whether the message is truncated. Defaults to `false`.
+    ///   - isCheckingDisabled: Whether DNSSEC checking is disabled. Defaults to `false`.
+    ///   - isAuthenticatedData: Whether the data is DNSSEC-authenticated. Defaults to `false`.
+    ///   - queries: The question section entries.
+    ///   - records: The answer section resource records.
+    ///   - authorities: The authority section resource records.
+    ///   - resources: The additional section resource records.
+    /// - Throws: Throws an ``EncoderError`` when any of the passed arrays exceed the maximum allowed number of entries  (`UInt16.max`).
+    public init(
+        id: UInt16 = .random(in: 0 ... UInt16.max),
+        operationCode: DNSOperationCode = .query,
+        resultCode: DNSResultCode = .noError,
+        isResponse: Bool = false,
+        isRecursionDesired: Bool = true,
+        isRecursionAvailable: Bool = false,
+        isAnswerAuthoritative: Bool = false,
+        isMessageTruncated: Bool = false,
+        isCheckingDisabled: Bool = false,
+        isAuthenticatedData: Bool = false,
+        queries: [DNSQuery] = [],
+        records: [any DNSRecord] = [],
+        authorities: [any DNSRecord] = [],
+        resources: [any DNSRecord] = []
+    ) throws(EncoderError) {
+        try Self.validateNumberOfEntries(count: queries.count, container: "queries")
+        try Self.validateNumberOfEntries(count: records.count, container: "records")
+        try Self.validateNumberOfEntries(count: authorities.count, container: "authorities")
+        try Self.validateNumberOfEntries(count: resources.count, container: "resources")
+
+        self.header = DNSHeader(
+            id: id,
+            isRecursionDesired: isRecursionDesired,
+            isMessageTruncated: isMessageTruncated,
+            isAnswerAuthoritative: isAnswerAuthoritative,
+            isCheckingDisabled: isCheckingDisabled,
+            isAuthenticatedData: isAuthenticatedData,
+            isRecursionAvailable: isRecursionAvailable,
+            isResponse: isResponse,
+            operationCode: operationCode,
+            resultCode: resultCode,
+            z: false,
+            numberOfQueries: UInt16(queries.count),
+            numberOfRecords: UInt16(records.count),
+            numberOfAuthorities: UInt16(authorities.count),
+            numberOfResources: UInt16(resources.count)
+        )
+        self.queries = queries
+        self.records = records
+        self.authorities = authorities
+        self.resources = resources
+    }
+
+}
+
+// MARK: - Convenience Factories
+
+extension DNSPacket {
+
+    /// Creates a DNS response packet that mirrors a request's metadata.
+    ///
+    /// Automatically copies the request's ID, operation code, recursion-desired flag,
+    /// and queries so DNS clients can match the response to the original request.
+    ///
+    /// ```swift
+    /// let response = request.makeResponse(
+    ///     isRecursionAvailable: true,
+    ///     isAnswerAuthoritative: true,
+    ///     records: [resolvedARecord]
+    /// )
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - resultCode: The response code. Defaults to `.noError`.
+    ///   - isRecursionAvailable: Whether recursion is available. Defaults to `false`.
+    ///   - isAnswerAuthoritative: Whether the answer is authoritative. Defaults to `false`.
+    ///   - isMessageTruncated: Whether the message is truncated. Defaults to `false`.
+    ///   - isCheckingDisabled: Whether DNSSEC checking is disabled. Defaults to `false`.
+    ///   - isAuthenticatedData: Whether the data is DNSSEC-authenticated. Defaults to `false`.
+    ///   - records: The answer section resource records.
+    ///   - authorities: The authority section resource records.
+    ///   - resources: The additional section resource records.
+    /// - Returns: A DNS response packet.
+    /// - Throws: Throws an ``EncoderError`` when any of the passed arrays exceed the maximum number of allowed entries (`UInt16.max`).
+    public func makeResponse(
+        resultCode: DNSResultCode = .noError,
+        isRecursionAvailable: Bool = false,
+        isAnswerAuthoritative: Bool = false,
+        isMessageTruncated: Bool = false,
+        isCheckingDisabled: Bool = false,
+        isAuthenticatedData: Bool = false,
+        records: [any DNSRecord] = [],
+        authorities: [any DNSRecord] = [],
+        resources: [any DNSRecord] = []
+    ) throws(EncoderError) -> DNSPacket {
+        try DNSPacket(
+            id: header.id,
+            operationCode: header.operationCode,
+            resultCode: resultCode,
+            isResponse: true,
+            isRecursionDesired: header.isRecursionDesired,
+            isRecursionAvailable: isRecursionAvailable,
+            isAnswerAuthoritative: isAnswerAuthoritative,
+            isMessageTruncated: isMessageTruncated,
+            isCheckingDisabled: isCheckingDisabled,
+            isAuthenticatedData: isAuthenticatedData,
+            queries: queries,
+            records: records,
+            authorities: authorities,
+            resources: resources
+        )
+    }
+
+}
+
 // MARK: - Equatable
 
 extension DNSPacket: Equatable {
@@ -89,7 +238,7 @@ extension DNSPacket: Equatable {
         case .mx:
             areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: MXRecord.self)
         case .soa:
-            areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: UnknownRecord.self)
+            areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: SOARecord.self)
         case .txt:
             areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: TXTRecord.self)
         }
@@ -105,6 +254,18 @@ extension DNSPacket: Equatable {
             return false
         }
         return castedLHS == castedRHS
+    }
+
+}
+
+// MARK: - Validation
+
+extension DNSPacket {
+
+    private static func validateNumberOfEntries(count: Int, container: String) throws(EncoderError) {
+        if count > UInt16.max {
+            throw EncoderError.tooManyRecordsToEncode(count: count, container: container)
+        }
     }
 
 }

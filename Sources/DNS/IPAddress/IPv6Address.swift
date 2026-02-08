@@ -105,8 +105,10 @@ extension IPv6Address: DNSPacketEncodable {
     ///
     /// - Parameter byteBuffer: The buffer to write the encoded data to
     /// - Throws: An error if the buffer cannot be written to
-    func encode(into byteBuffer: inout any ByteBufferWriting) throws {
-        for fragment in self.fragments { byteBuffer.write(fragment) }
+    func encode(into byteBuffer: inout any ByteBufferWriting) throws(EncoderError) {
+        for fragment in self.fragments {
+            byteBuffer.write(fragment)
+        }
     }
 
 }
