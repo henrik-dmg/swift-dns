@@ -398,4 +398,234 @@ struct DNSRecordDecoderTests {
         #expect(soaRecord.minimum == originalRecord.minimum)
     }
 
+    // MARK: - RDLENGTH Validation Tests
+
+    @Test("throws error when A record has incorrect RDLENGTH")
+    func aRecordInvalidRDLength() throws {
+        var data = Data()
+
+        // Record name: "example.com"
+        data.append(contentsOf: [0x07])
+        data.append(contentsOf: "example".data(using: .ascii)!)
+        data.append(contentsOf: [0x03])
+        data.append(contentsOf: "com".data(using: .ascii)!)
+        data.append(contentsOf: [0x00])
+
+        // Type: A (1)
+        data.append(contentsOf: [0x00, 0x01])
+
+        // Class: IN (1)
+        data.append(contentsOf: [0x00, 0x01])
+
+        // TTL: 300
+        data.append(contentsOf: [0x00, 0x00, 0x01, 0x2C])
+
+        // RDLENGTH: 5 (should be 4 for IPv4)
+        data.append(contentsOf: [0x00, 0x05])
+
+        // RDATA: 192.168.1.1 + extra byte
+        data.append(contentsOf: [192, 168, 1, 1, 0])
+
+        var buffer: any ByteBufferReading = ByteBufferReader(data)
+
+        #expect(throws: DecoderError.self) {
+            try DNSRecordDecoder.decode(from: &buffer)
+        }
+    }
+
+    @Test("throws error when AAAA record has incorrect RDLENGTH")
+    func aaaaRecordInvalidRDLength() throws {
+        var data = Data()
+
+        // Record name: "example.com"
+        data.append(contentsOf: [0x07])
+        data.append(contentsOf: "example".data(using: .ascii)!)
+        data.append(contentsOf: [0x03])
+        data.append(contentsOf: "com".data(using: .ascii)!)
+        data.append(contentsOf: [0x00])
+
+        // Type: AAAA (28)
+        data.append(contentsOf: [0x00, 0x1C])
+
+        // Class: IN (1)
+        data.append(contentsOf: [0x00, 0x01])
+
+        // TTL: 300
+        data.append(contentsOf: [0x00, 0x00, 0x01, 0x2C])
+
+        // RDLENGTH: 15 (should be 16 for IPv6)
+        data.append(contentsOf: [0x00, 0x0F])
+
+        // RDATA: 15 bytes (should be 16)
+        data.append(
+            contentsOf: [
+                0x20, 0x01, 0x0d, 0xb8, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            ]
+        )
+
+        var buffer: any ByteBufferReading = ByteBufferReader(data)
+
+        #expect(throws: DecoderError.self) {
+            try DNSRecordDecoder.decode(from: &buffer)
+        }
+    }
+
+    @Test("throws error when SOA record has incorrect RDLENGTH")
+    func soaRecordInvalidRDLength() throws {
+        var data = Data()
+
+        // Record name: "example.com"
+        data.append(contentsOf: [0x07])
+        data.append(contentsOf: "example".data(using: .ascii)!)
+        data.append(contentsOf: [0x03])
+        data.append(contentsOf: "com".data(using: .ascii)!)
+        data.append(contentsOf: [0x00])
+
+        // Type: SOA (6)
+        data.append(contentsOf: [0x00, 0x06])
+
+        // Class: IN (1)
+        data.append(contentsOf: [0x00, 0x01])
+
+        // TTL: 3600
+        data.append(contentsOf: [0x00, 0x00, 0x0E, 0x10])
+
+        // RDLENGTH: 50 (actual data is 56 bytes, so this should cause mismatch)
+        data.append(contentsOf: [0x00, 0x32])
+
+        // RDATA: (actual 56 bytes of data)
+        // MNAME: "ns1.example.com" (17 bytes)
+        data.append(contentsOf: [0x03])
+        data.append(contentsOf: "ns1".data(using: .ascii)!)
+        data.append(contentsOf: [0x07])
+        data.append(contentsOf: "example".data(using: .ascii)!)
+        data.append(contentsOf: [0x03])
+        data.append(contentsOf: "com".data(using: .ascii)!)
+        data.append(contentsOf: [0x00])
+
+        // RNAME: "admin.example.com" (19 bytes)
+        data.append(contentsOf: [0x05])
+        data.append(contentsOf: "admin".data(using: .ascii)!)
+        data.append(contentsOf: [0x07])
+        data.append(contentsOf: "example".data(using: .ascii)!)
+        data.append(contentsOf: [0x03])
+        data.append(contentsOf: "com".data(using: .ascii)!)
+        data.append(contentsOf: [0x00])
+
+        // 5 x UInt32 (20 bytes)
+        data.append(contentsOf: [0x00, 0x00, 0x00, 0x01])  // SERIAL
+        data.append(contentsOf: [0x00, 0x00, 0x00, 0x02])  // REFRESH
+        data.append(contentsOf: [0x00, 0x00, 0x00, 0x03])  // RETRY
+        data.append(contentsOf: [0x00, 0x00, 0x00, 0x04])  // EXPIRE
+        data.append(contentsOf: [0x00, 0x00, 0x00, 0x05])  // MINIMUM
+
+        var buffer: any ByteBufferReading = ByteBufferReader(data)
+
+        #expect(throws: DecoderError.self) {
+            try DNSRecordDecoder.decode(from: &buffer)
+        }
+    }
+
+    @Test("decodes SOA record with compression pointers")
+    func soaRecordWithCompression() throws {
+        // This test verifies that SOA records correctly handle compression pointers
+        // in both MNAME and RNAME fields.
+        //
+        // Packet structure:
+        // 1. Query for "example.com" (so we can reference it later)
+        // 2. SOA record where MNAME and RNAME use compression to reference "example.com"
+
+        var data = Data()
+
+        // Query section: "example.com" at offset 0
+        data.append(contentsOf: [0x07])  // length 7
+        data.append(contentsOf: "example".data(using: .ascii)!)
+        data.append(contentsOf: [0x03])  // length 3
+        data.append(contentsOf: "com".data(using: .ascii)!)
+        data.append(contentsOf: [0x00])  // null terminator
+        // Query type/class
+        data.append(contentsOf: [0x00, 0x06, 0x00, 0x01])  // Type SOA, Class IN
+
+        // SOA record starts here (offset 17)
+        // Record name: pointer to offset 0 (0xC000 = compression pointer to "example.com")
+        data.append(contentsOf: [0xC0, 0x00])
+
+        // Type: SOA (6)
+        data.append(contentsOf: [0x00, 0x06])
+
+        // Class: IN (1)
+        data.append(contentsOf: [0x00, 0x01])
+
+        // TTL: 3600
+        data.append(contentsOf: [0x00, 0x00, 0x0E, 0x10])
+
+        // RDLENGTH: Calculate based on compressed data
+        // MNAME: 0x03 "ns1" 0xC000 (pointer to "example.com") = 1+3+2 = 6 bytes
+        // RNAME: 0x05 "admin" 0xC000 (pointer to "example.com") = 1+5+2 = 8 bytes
+        // 5 x UInt32 = 20 bytes
+        // Total: 6 + 8 + 20 = 34 bytes (0x0022)
+        data.append(contentsOf: [0x00, 0x22])
+
+        // RDATA:
+        // MNAME: "ns1.example.com" using compression
+        data.append(contentsOf: [0x03])  // length 3
+        data.append(contentsOf: "ns1".data(using: .ascii)!)
+        data.append(contentsOf: [0xC0, 0x00])  // pointer to "example.com" at offset 0
+
+        // RNAME: "admin.example.com" using compression
+        data.append(contentsOf: [0x05])  // length 5
+        data.append(contentsOf: "admin".data(using: .ascii)!)
+        data.append(contentsOf: [0xC0, 0x00])  // pointer to "example.com" at offset 0
+
+        // SERIAL: 2024010101
+        data.append(contentsOf: [0x78, 0xA3, 0xF1, 0x75])
+
+        // REFRESH: 7200
+        data.append(contentsOf: [0x00, 0x00, 0x1C, 0x20])
+
+        // RETRY: 3600
+        data.append(contentsOf: [0x00, 0x00, 0x0E, 0x10])
+
+        // EXPIRE: 1209600
+        data.append(contentsOf: [0x00, 0x12, 0x75, 0x00])
+
+        // MINIMUM: 86400
+        data.append(contentsOf: [0x00, 0x01, 0x51, 0x80])
+
+        // Skip the query section (17 bytes) to get to the SOA record
+        var buffer: any ByteBufferReading = ByteBufferReader(data)
+        buffer.currentIndex = 17
+
+        let record = try DNSRecordDecoder.decode(from: &buffer)
+
+        // Verify record type
+        #expect(record.recordType == .soa)
+
+        // Verify it's an SOA record
+        let soaRecord = try #require(record as? SOARecord)
+
+        // Verify record name (should be "example.com" from compression)
+        #expect(soaRecord.labels.labels == ["example", "com"])
+
+        // Verify MNAME resolves correctly through compression
+        #expect(
+            soaRecord.primaryNameServer.labels == ["ns1", "example", "com"],
+            "SOA MNAME should resolve to ['ns1', 'example', 'com'], got \(soaRecord.primaryNameServer.labels)"
+        )
+
+        // Verify RNAME resolves correctly through compression
+        #expect(
+            soaRecord.responsibleMailbox.labels == ["admin", "example", "com"],
+            "SOA RNAME should resolve to ['admin', 'example', 'com'], got \(soaRecord.responsibleMailbox.labels)"
+        )
+
+        // Verify numeric fields
+        #expect(soaRecord.serial == 2_024_010_101)
+        #expect(soaRecord.refresh == 7200)
+        #expect(soaRecord.retry == 3600)
+        #expect(soaRecord.expire == 1_209_600)
+        #expect(soaRecord.minimum == 86400)
+    }
+
 }
