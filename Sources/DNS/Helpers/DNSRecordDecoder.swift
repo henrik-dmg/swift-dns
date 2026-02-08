@@ -26,6 +26,9 @@ extension DNSRecordDecoder: DNSPacketDecodable {
         switch recordType {
         case .a:
             // Decodes an IPv4 A record
+            guard lengthOfCustomData == 4 else {
+                throw DecoderError.rdataLengthMismatch(expected: 4, actual: Int(lengthOfCustomData))
+            }
             return ARecord(
                 labels: labels,
                 recordType: recordType,
@@ -35,6 +38,9 @@ extension DNSRecordDecoder: DNSPacketDecodable {
             )
         case .aaaa:
             // Decodes an IPv6 AAAA record
+            guard lengthOfCustomData == 16 else {
+                throw DecoderError.rdataLengthMismatch(expected: 16, actual: Int(lengthOfCustomData))
+            }
             return AAAARecord(
                 labels: labels,
                 recordType: recordType,
@@ -47,59 +53,86 @@ extension DNSRecordDecoder: DNSPacketDecodable {
             // Use the full packet buffer to support compression pointers.
             var nsBuffer: any ByteBufferReading = ByteBufferReader(byteBuffer.data)
             nsBuffer.currentIndex = rdataStartIndex
+            let payloadLabels = try DNSLabels.decode(from: &nsBuffer)
+            let bytesRead = nsBuffer.currentIndex - rdataStartIndex
+            guard bytesRead == Int(lengthOfCustomData) else {
+                throw DecoderError.rdataLengthMismatch(expected: Int(lengthOfCustomData), actual: bytesRead)
+            }
             return NSRecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
                 lengthOfCustomData: lengthOfCustomData,
-                paylodLabels: try DNSLabels.decode(from: &nsBuffer)
+                paylodLabels: payloadLabels
             )
         case .cname:
             // Decode the canonical name from the RDATA.
             // Use the full packet buffer to support compression pointers.
             var cnameBuffer: any ByteBufferReading = ByteBufferReader(byteBuffer.data)
             cnameBuffer.currentIndex = rdataStartIndex
+            let payloadLabels = try DNSLabels.decode(from: &cnameBuffer)
+            let bytesRead = cnameBuffer.currentIndex - rdataStartIndex
+            guard bytesRead == Int(lengthOfCustomData) else {
+                throw DecoderError.rdataLengthMismatch(expected: Int(lengthOfCustomData), actual: bytesRead)
+            }
             return CNAMERecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
                 lengthOfCustomData: lengthOfCustomData,
-                paylodLabels: try DNSLabels.decode(from: &cnameBuffer)
+                paylodLabels: payloadLabels
             )
         case .mx:
             // Decode priority and mail server domain from the RDATA.
             // Use the full packet buffer to support compression pointers.
             var mxBuffer: any ByteBufferReading = ByteBufferReader(byteBuffer.data)
             mxBuffer.currentIndex = rdataStartIndex
+            let priority = try mxBuffer.readUInt16()
+            let payloadLabels = try DNSLabels.decode(from: &mxBuffer)
+            let bytesRead = mxBuffer.currentIndex - rdataStartIndex
+            guard bytesRead == Int(lengthOfCustomData) else {
+                throw DecoderError.rdataLengthMismatch(expected: Int(lengthOfCustomData), actual: bytesRead)
+            }
             return MXRecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
                 lengthOfCustomData: lengthOfCustomData,
-                priority: try mxBuffer.readUInt16(),
-                paylodLabels: try DNSLabels.decode(from: &mxBuffer)
+                priority: priority,
+                paylodLabels: payloadLabels
             )
         case .soa:
             // Decode SOA record fields from the RDATA.
             // Use the full packet buffer to support compression pointers.
             var soaBuffer: any ByteBufferReading = ByteBufferReader(byteBuffer.data)
             soaBuffer.currentIndex = rdataStartIndex
+            let primaryNameServer = try DNSLabels.decode(from: &soaBuffer)
+            let responsibleMailbox = try DNSLabels.decode(from: &soaBuffer)
+            let serial = try soaBuffer.readUInt32()
+            let refresh = try soaBuffer.readUInt32()
+            let retry = try soaBuffer.readUInt32()
+            let expire = try soaBuffer.readUInt32()
+            let minimum = try soaBuffer.readUInt32()
+            let bytesRead = soaBuffer.currentIndex - rdataStartIndex
+            guard bytesRead == Int(lengthOfCustomData) else {
+                throw DecoderError.rdataLengthMismatch(expected: Int(lengthOfCustomData), actual: bytesRead)
+            }
             return SOARecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
                 lengthOfCustomData: lengthOfCustomData,
-                primaryNameServer: try DNSLabels.decode(from: &soaBuffer),
-                responsibleMailbox: try DNSLabels.decode(from: &soaBuffer),
-                serial: try soaBuffer.readUInt32(),
-                refresh: try soaBuffer.readUInt32(),
-                retry: try soaBuffer.readUInt32(),
-                expire: try soaBuffer.readUInt32(),
-                minimum: try soaBuffer.readUInt32()
+                primaryNameServer: primaryNameServer,
+                responsibleMailbox: responsibleMailbox,
+                serial: serial,
+                refresh: refresh,
+                retry: retry,
+                expire: expire,
+                minimum: minimum
             )
         case .txt:
             // Decodes an arbitrary TXT record
