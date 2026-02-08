@@ -11,20 +11,22 @@ import Logging
 /// Represents a complete DNS message packet as defined in RFC 1035.
 public struct DNSPacket {
 
+    // MARK: - Properties
+
     /// The header section of the DNS message, containing control information.
-    public var header: DNSHeader
+    public let header: DNSHeader
 
     /// The question section of the DNS message, containing the queries being made.
-    public var queries: [DNSQuery]
+    public let queries: [DNSQuery]
 
     /// The answer section of the DNS message, containing resource records that answer the queries.
-    public var records: [any DNSRecord]
+    public let records: [any DNSRecord]
 
     /// The authority section of the DNS message, containing name server resource records.
-    public var authorities: [any DNSRecord]
+    public let authorities: [any DNSRecord]
 
     /// The additional section of the DNS message, containing additional resource records.
-    public var resources: [any DNSRecord]
+    public let resources: [any DNSRecord]
 
 }
 

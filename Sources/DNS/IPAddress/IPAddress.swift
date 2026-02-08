@@ -17,6 +17,6 @@ public protocol IPAddress: Equatable, Sendable {
     /// For IPv6 addresses, this will be in hexadecimal notation with compression (e.g., "2001:db8::1").
     ///
     /// - Returns: A formatted string representation of the IP address
-    func formattedAddress() -> String
+    func formatted() -> String
 
 }

@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  DNSOperationCode.swift
 //  swift-dns
 //
 //  Created by Henrik Panhans on 20.04.25.

@@ -13,7 +13,7 @@ import Testing
 @Suite
 struct DNSLabelsTests {
 
-    // MARK: - Bug 2: Label Seek-Back Test
+    // MARK: - Label Compression Seek-Back
 
     @Test("correctly positions buffer after decoding labels with uncompressed prefix and compression pointer")
     func seekBackWithUncompressedPrefix() throws {
@@ -55,8 +55,7 @@ struct DNSLabelsTests {
         // Verify the decoded labels
         #expect(labels.labels == ["mail", "google", "com"])
 
-        // BUG CHECK: Buffer should be at position 0x13 (right after the pointer)
-        // With the bug, it would be at 0x0C + 2 = 0x0E (inside "mail")
+        // Buffer should be at position 0x13 (right after the pointer)
         #expect(
             buffer.currentIndex == 0x13,
             "Buffer position should be after the compression pointer (0x13), not \(buffer.currentIndex)"

@@ -41,14 +41,12 @@ struct DNSPacketCompressorTests {
         #expect(compressor.data == Data(expected))
     }
 
-    // MARK: - Bug 3: Suffix Compression Tests
+    // MARK: - Suffix Compression
 
     @Test("compresses suffix when writing longer domain after shorter")
     func suffixCompressionLongerAfterShorter() throws {
-        // Bug 3: When writing "google.com" then "mail.google.com", the suffix
+        // When writing "google.com" then "mail.google.com", the suffix
         // "google.com" should be compressed using a pointer to the first occurrence.
-        //
-        // Currently, the compressor only matches exact sequences, not suffixes.
 
         var compressor = DNSPacketCompressor()
 
@@ -61,10 +59,6 @@ struct DNSPacketCompressorTests {
         // Expected output:
         // Offset 0x00: 06 "google" 03 "com" 00  (11 bytes)
         // Offset 0x0B: 04 "mail" C0 00          (7 bytes - "mail" + pointer to offset 0)
-        //
-        // Without suffix compression (BUG), it would write:
-        // Offset 0x00: 06 "google" 03 "com" 00  (11 bytes)
-        // Offset 0x0B: 04 "mail" 06 "google" 03 "com" 00  (16 bytes - no compression)
 
         let expected: [UInt8] = [
             0x06,  // length 6

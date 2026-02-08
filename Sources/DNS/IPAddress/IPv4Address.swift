@@ -23,7 +23,9 @@ public struct IPv4Address: IPAddress {
     /// Internal initializer that creates an IPv4 address from an array of octets.
     ///
     /// - Parameter fragments: An array of four bytes representing the IPv4 address
-    init(fragments: [UInt8]) { self.fragments = fragments }
+    init(fragments: [UInt8]) {
+        self.fragments = fragments
+    }
 
     /// Creates a new IPv4 address from four octets.
     ///
@@ -43,7 +45,9 @@ public struct IPv4Address: IPAddress {
     /// For example, the address [192, 168, 1, 1] will be formatted as "192.168.1.1".
     ///
     /// - Returns: A string representation of the IPv4 address
-    public func formattedAddress() -> String { fragments.map { "\($0)" }.joined(separator: ".") }
+    public func formatted() -> String {
+        fragments.map { "\($0)" }.joined(separator: ".")
+    }
 
 }
 
@@ -68,6 +72,6 @@ extension IPv4Address: CustomDebugStringConvertible {
     /// Returns a debug description of the IPv4 address.
     ///
     /// The format is "IPv4(x.x.x.x)" where x.x.x.x is the dotted-decimal representation.
-    public var debugDescription: String { "IPv4(\(formattedAddress()))" }
+    public var debugDescription: String { "IPv4(\(self.formatted()))" }
 
 }

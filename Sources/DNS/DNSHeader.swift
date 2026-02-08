@@ -12,6 +12,8 @@ import Foundation
 /// The header contains control information and counts for the various sections of the DNS message.
 public struct DNSHeader: Equatable, Sendable {
 
+    // MARK: - Properties
+
     /// A 16-bit identifier assigned by the program that generates any kind of query.
     ///
     /// This identifier is copied in the corresponding reply and can be used to match responses with queries.

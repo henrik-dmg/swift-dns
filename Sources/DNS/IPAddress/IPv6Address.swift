@@ -73,7 +73,7 @@ public struct IPv6Address: IPAddress {
     /// - Lowercase letters are used for hexadecimal digits
     ///
     /// - Returns: A string representation of the IPv6 address
-    public func formattedAddress() -> String {
+    public func formatted() -> String {
         var formattedAddress = ""
         let stringFragments = fragments.map { String(format: "%02X", $0) }
         for fragment in stringFragments {
@@ -118,6 +118,6 @@ extension IPv6Address: CustomDebugStringConvertible {
     /// Returns a debug description of the IPv6 address.
     ///
     /// The format is "IPv6(x:x:x:x:x:x:x:x)" where x:x:x:x:x:x:x:x is the hexadecimal representation.
-    public var debugDescription: String { "IPv6(\(formattedAddress()))" }
+    public var debugDescription: String { "IPv6(\(self.formatted()))" }
 
 }

@@ -22,6 +22,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
 
         switch recordType {
         case .a:
+            // Decodes an IPv4 A record
             return ARecord(
                 labels: labels,
                 recordType: recordType,
@@ -30,6 +31,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 address: IPv4Address(fragments: Array(customData))
             )
         case .aaaa:
+            // Decodes an IPv6 AAAA record
             return AAAARecord(
                 labels: labels,
                 recordType: recordType,
@@ -73,6 +75,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 paylodLabels: try DNSLabels.decode(from: &subBuffer)
             )
         case .txt:
+            // Decodes an arbitrary TXT record
             let lengthOfString = customData[0]
             let contentData = customData.dropFirst()
             guard let content = String(data: contentData, encoding: .ascii), content.count == Int(lengthOfString) else {

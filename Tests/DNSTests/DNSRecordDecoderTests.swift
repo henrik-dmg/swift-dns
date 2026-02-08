@@ -13,7 +13,7 @@ import Testing
 @Suite
 struct DNSRecordDecoderTests {
 
-    // MARK: - Bug 1: NS/CNAME/MX Record Decoding Tests
+    // MARK: - NS/CNAME/MX Record Decoding
 
     @Test("decodes NS record with correct payload labels")
     func decodeNSRecord() throws {
@@ -72,8 +72,6 @@ struct DNSRecordDecoderTests {
         // Verify it's an NS record
         let nsRecord = try #require(record as? NSRecord)
 
-        // BUG CHECK: The payload labels should be "ns1.example.com"
-        // With the bug, the decoder would read from the wrong position
         #expect(
             nsRecord.paylodLabels.labels == ["ns1", "example", "com"],
             "NS record should have payload labels ['ns1', 'example', 'com'], got \(nsRecord.paylodLabels.labels)"
@@ -123,7 +121,6 @@ struct DNSRecordDecoderTests {
 
         let cnameRecord = try #require(record as? CNAMERecord)
 
-        // BUG CHECK: Payload should be the canonical name
         #expect(
             cnameRecord.paylodLabels.labels == ["example", "com"],
             "CNAME should point to ['example', 'com'], got \(cnameRecord.paylodLabels.labels)"
@@ -174,7 +171,6 @@ struct DNSRecordDecoderTests {
 
         let mxRecord = try #require(record as? MXRecord)
 
-        // BUG CHECK: Priority and mail server should be correctly decoded
         #expect(mxRecord.priority == 10, "MX priority should be 10, got \(mxRecord.priority)")
         #expect(
             mxRecord.paylodLabels.labels == ["mail", "example", "com"],
