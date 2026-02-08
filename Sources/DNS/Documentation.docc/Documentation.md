@@ -1,4 +1,4 @@
-# ``DNSKit``
+# ``DNS``
 
 A library for working with DNS packets.
 
