@@ -28,26 +28,11 @@ public struct DNSPacket {
     /// The additional section of the DNS message, containing additional resource records.
     public let resources: [any DNSRecord]
 
-    // MARK: - Internal Initializer
+}
 
-    /// Creates a packet with a pre-built header.
-    ///
-    /// Used by the decoder where header counts are already guaranteed to match the arrays.
-    init(
-        header: DNSHeader,
-        queries: [DNSQuery],
-        records: [any DNSRecord],
-        authorities: [any DNSRecord],
-        resources: [any DNSRecord]
-    ) {
-        self.header = header
-        self.queries = queries
-        self.records = records
-        self.authorities = authorities
-        self.resources = resources
-    }
+// MARK: - Init
 
-    // MARK: - Public Initializer
+extension DNSPacket {
 
     /// Creates a DNS packet by specifying header flags and section arrays.
     ///
@@ -56,12 +41,12 @@ public struct DNSPacket {
     ///
     /// ```swift
     /// // Simple query
-    /// let packet = DNSPacket(
+    /// let packet = try DNSPacket(
     ///     queries: [DNSQuery(labels: ["example", "com"], recordType: .a, recordClass: 1)]
     /// )
     ///
     /// // Authoritative response
-    /// let response = DNSPacket(
+    /// let response = try DNSPacket(
     ///     id: request.header.id,
     ///     isResponse: true,
     ///     isRecursionDesired: request.header.isRecursionDesired,
@@ -87,6 +72,7 @@ public struct DNSPacket {
     ///   - records: The answer section resource records.
     ///   - authorities: The authority section resource records.
     ///   - resources: The additional section resource records.
+    /// - Throws: Throws an ``EncoderError`` when any of the passed arrays exceed the maximum allowed number of entries  (`UInt16.max`).
     public init(
         id: UInt16 = .random(in: 0 ... UInt16.max),
         operationCode: DNSOperationCode = .query,
@@ -102,7 +88,12 @@ public struct DNSPacket {
         records: [any DNSRecord] = [],
         authorities: [any DNSRecord] = [],
         resources: [any DNSRecord] = []
-    ) {
+    ) throws(EncoderError) {
+        try Self.validateNumberOfEntries(count: queries.count, container: "queries")
+        try Self.validateNumberOfEntries(count: records.count, container: "records")
+        try Self.validateNumberOfEntries(count: authorities.count, container: "authorities")
+        try Self.validateNumberOfEntries(count: resources.count, container: "resources")
+
         self.header = DNSHeader(
             id: id,
             isRecursionDesired: isRecursionDesired,
@@ -126,7 +117,11 @@ public struct DNSPacket {
         self.resources = resources
     }
 
-    // MARK: - Convenience Factories
+}
+
+// MARK: - Convenience Factories
+
+extension DNSPacket {
 
     /// Creates a DNS response packet that mirrors a request's metadata.
     ///
@@ -152,6 +147,7 @@ public struct DNSPacket {
     ///   - authorities: The authority section resource records.
     ///   - resources: The additional section resource records.
     /// - Returns: A DNS response packet.
+    /// - Throws: Throws an ``EncoderError`` when any of the passed arrays exceed the maximum number of allowed entries (`UInt16.max`).
     public func makeResponse(
         resultCode: DNSResultCode = .noError,
         isRecursionAvailable: Bool = false,
@@ -162,8 +158,8 @@ public struct DNSPacket {
         records: [any DNSRecord] = [],
         authorities: [any DNSRecord] = [],
         resources: [any DNSRecord] = []
-    ) -> DNSPacket {
-        DNSPacket(
+    ) throws(EncoderError) -> DNSPacket {
+        try DNSPacket(
             id: header.id,
             operationCode: header.operationCode,
             resultCode: resultCode,
