@@ -17,7 +17,9 @@ struct DNSPacketTests {
 
     @Test("decodes query packet")
     func decodeQueryPacket() throws {
-        let path = try #require(Bundle.module.url(forResource: "query_packet", withExtension: "txt"))
+        let path = try #require(
+            Bundle.module.url(forResource: "query_packet", withExtension: "txt")
+        )
         let data = try Data(contentsOf: path)
         let decoder = DNSPacketDecoder()
         let packet = try decoder.decode(from: data)
@@ -33,7 +35,9 @@ struct DNSPacketTests {
 
     @Test("decodes response packet")
     func decodeResponsePacket() throws {
-        let path = try #require(Bundle.module.url(forResource: "response_packet", withExtension: "txt"))
+        let path = try #require(
+            Bundle.module.url(forResource: "response_packet", withExtension: "txt")
+        )
         let data = try Data(contentsOf: path)
         let decoder = DNSPacketDecoder()
         let packet = try decoder.decode(from: data)
@@ -212,7 +216,7 @@ extension DNSHeader {
         id: 599,
         isRecursionDesired: false,
         isMessageTruncated: false,
-        isAnswerAuthorative: true,
+        isAnswerAuthoritative: true,
         isCheckingDisabled: false,
         isAuthenticatedData: true,
         isRecursionAvailable: true,

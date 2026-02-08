@@ -28,7 +28,7 @@ public struct DNSHeader: Equatable, Sendable {
     public let isMessageTruncated: Bool
 
     /// Indicates that the responding name server is an authority for the domain name in the question section.
-    public let isAnswerAuthorative: Bool
+    public let isAnswerAuthoritative: Bool
 
     /// Indicates that checking of the response data is disabled.
     public let isCheckingDisabled: Bool
@@ -110,7 +110,7 @@ extension DNSHeader: DNSPacketDecodable {
         // Extract individual flags from the first byte
         let isRecursionDesired = (flagsA & (1 << 0)) > 0
         let isMessageTruncated = (flagsA & (1 << 1)) > 0
-        let isAnswerAuthorative = (flagsA & (1 << 2)) > 0
+        let isAnswerAuthoritative = (flagsA & (1 << 2)) > 0
         let operationCodeValue = (flagsA >> 3) & 0x0F
         let isResponse = (flagsA & (1 << 7)) > 0
 
@@ -142,7 +142,7 @@ extension DNSHeader: DNSPacketDecodable {
             id: id,
             isRecursionDesired: isRecursionDesired,
             isMessageTruncated: isMessageTruncated,
-            isAnswerAuthorative: isAnswerAuthorative,
+            isAnswerAuthoritative: isAnswerAuthoritative,
             isCheckingDisabled: isCheckingDisabled,
             isAuthenticatedData: isAuthenticatedData,
             isRecursionAvailable: isRecursionAvailable,
@@ -176,7 +176,7 @@ extension DNSHeader: DNSPacketEncodable {
         // Encode and write the first byte of flags (flagsA)
         let flagA =
             UInt8(isRecursionDesired ? 1 : 0) | (UInt8(isMessageTruncated ? 1 : 0) << 1)
-            | (UInt8(isAnswerAuthorative ? 1 : 0) << 2) | (operationCode.rawValue << 3)
+            | (UInt8(isAnswerAuthoritative ? 1 : 0) << 2) | (operationCode.rawValue << 3)
             | (UInt8(isResponse ? 1 : 0) << 7)
         buffer.write(flagA)
 
