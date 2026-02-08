@@ -1,0 +1,209 @@
+#!/usr/bin/env python3
+
+"""
+Script to capture DNS packets from dig command
+Usage: ./capture-dns-packets [dig arguments]
+Example: ./capture-dns-packets @8.8.8.8 example.com A
+"""
+
+import sys
+import subprocess
+import tempfile
+import struct
+import os
+import time
+import signal
+
+
+def read_pcap_packet(pcap_file):
+    """Read packets from a pcap file and extract DNS payloads"""
+    with open(pcap_file, "rb") as f:
+        # Read global header (24 bytes)
+        global_header = f.read(24)
+        if len(global_header) < 24:
+            return []
+
+        # Parse magic number and link type
+        magic = struct.unpack("I", global_header[0:4])[0]
+        if magic not in (0xA1B2C3D4, 0xD4C3B2A1):
+            print(f"Error: Invalid pcap magic number: {hex(magic)}")
+            return []
+
+        # Determine endianness
+        native_byte_order = magic == 0xA1B2C3D4
+        endian = ">" if not native_byte_order else "<"
+
+        # Get link layer type from global header
+        link_type = struct.unpack(endian + "I", global_header[20:24])[0]
+
+        # Determine link layer header size
+        if link_type == 1:  # DLT_EN10MB (Ethernet)
+            link_header_size = 14
+        elif link_type == 0:  # DLT_NULL (BSD loopback)
+            link_header_size = 4
+        elif link_type == 228:  # DLT_IPV4 (Raw IPv4)
+            link_header_size = 0
+        elif link_type == 229:  # DLT_IPV6 (Raw IPv6)
+            link_header_size = 0
+        else:
+            print(f"Warning: Unknown link type {link_type}, assuming 14 bytes")
+            link_header_size = 14
+
+        packets = []
+
+        # Read packets
+        while True:
+            # Read packet header (16 bytes)
+            packet_header = f.read(16)
+            if len(packet_header) < 16:
+                break
+
+            # Parse packet header
+            ts_sec, ts_usec, incl_len, orig_len = struct.unpack(
+                endian + "IIII", packet_header
+            )
+
+            # Read packet data
+            packet_data = f.read(incl_len)
+            if len(packet_data) < incl_len:
+                break
+
+            # Skip link layer header
+            if incl_len <= link_header_size:
+                continue
+
+            ip_packet = packet_data[link_header_size:]
+
+            # Parse IP header
+            if len(ip_packet) < 20:
+                continue
+
+            # Get IP header length (in 32-bit words)
+            ip_version_ihl = ip_packet[0]
+            ip_header_len = (ip_version_ihl & 0x0F) * 4
+
+            if len(ip_packet) < ip_header_len + 8:  # IP header + UDP header
+                continue
+
+            # Skip IP header to get to UDP
+            udp_packet = ip_packet[ip_header_len:]
+
+            # UDP header is 8 bytes, DNS payload starts after that
+            if len(udp_packet) < 8:
+                continue
+
+            dns_payload = udp_packet[8:]
+
+            if len(dns_payload) < 12:  # DNS header is 12 bytes minimum
+                continue
+
+            # Check if it's a query or response (QR bit in flags)
+            flags = struct.unpack("!H", dns_payload[2:4])[0]
+            is_response = (flags & 0x8000) != 0
+
+            packets.append({"dns_payload": dns_payload, "is_response": is_response})
+
+        return packets
+
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: ./capture-dns-packets-python [dig arguments]")
+        print("Example: ./capture-dns-packets-python @8.8.8.8 example.com A")
+        sys.exit(1)
+
+    # Create filename suffix from arguments
+    args_str = " ".join(sys.argv[1:])
+    filename_suffix = (
+        args_str.replace("@", "").replace("+", "").replace(" ", "-").replace("/", "-")
+    )
+    while "--" in filename_suffix:
+        filename_suffix = filename_suffix.replace("--", "-")
+
+    # Output files
+    sent_file = f"query-{filename_suffix}"
+    received_file = f"response-{filename_suffix}"
+
+    # Create temp directory
+    temp_dir = tempfile.mkdtemp()
+    capture_file = os.path.join(temp_dir, "dns-capture.pcap")
+
+    # Determine interface
+    try:
+        subprocess.run(["ifconfig", "en0"], check=True, capture_output=True)
+        interface = "en0"
+    except:
+        interface = "any"
+
+    print(f"Starting packet capture on interface {interface}...")
+
+    # Start tcpdump
+    tcpdump_proc = subprocess.Popen(
+        ["sudo", "tcpdump", "-i", interface, "-s0", "-w", capture_file, "port 53"],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+    # Wait for tcpdump to start
+    time.sleep(0.5)
+
+    # Run dig
+    print(f"Running: dig {' '.join(sys.argv[1:])}")
+    subprocess.run(["dig"] + sys.argv[1:])
+
+    # Wait for packets to be captured
+    time.sleep(0.5)
+
+    # Stop tcpdump
+    print("Stopping packet capture...")
+    tcpdump_proc.send_signal(signal.SIGTERM)
+    tcpdump_proc.wait()
+
+    # Parse pcap file
+    print("Extracting DNS payloads...")
+    packets = read_pcap_packet(capture_file)
+
+    if not packets:
+        print("Error: No DNS packets captured")
+        subprocess.run(["rm", "-rf", temp_dir])
+        sys.exit(1)
+
+    # Find query and response
+    query_packet = None
+    response_packet = None
+
+    for packet in packets:
+        if not packet["is_response"] and query_packet is None:
+            query_packet = packet["dns_payload"]
+        elif packet["is_response"] and response_packet is None:
+            response_packet = packet["dns_payload"]
+
+    if query_packet is None:
+        print("Error: No query packet found")
+        subprocess.run(["rm", "-rf", temp_dir])
+        sys.exit(1)
+
+    if response_packet is None:
+        print("Error: No response packet found")
+        subprocess.run(["rm", "-rf", temp_dir])
+        sys.exit(1)
+
+    # Write packets to files
+    with open(sent_file, "wb") as f:
+        f.write(query_packet)
+
+    with open(received_file, "wb") as f:
+        f.write(response_packet)
+
+    # Cleanup
+    subprocess.run(["rm", "-rf", temp_dir])
+
+    # Display results
+    print()
+    print("✓ DNS packets captured successfully:")
+    print(f"  Query packet:    {sent_file} ({len(query_packet)} bytes)")
+    print(f"  Response packet: {received_file} ({len(response_packet)} bytes)")
+
+
+if __name__ == "__main__":
+    main()
