@@ -115,11 +115,15 @@ struct DNSPacketTests {
         )
 
         let packet = DNSPacket(
-            header: .mock,
+            id: 599,
+            operationCode: .inverseQuery,
+            isResponse: true,
+            isRecursionDesired: false,
+            isRecursionAvailable: true,
+            isAnswerAuthoritative: true,
+            isAuthenticatedData: true,
             queries: [dnsQuery1, dnsQuery2, dnsQuery3],
-            records: [dnsRecord1, dnsRecord2, dnsRecord3],
-            authorities: [],
-            resources: []
+            records: [dnsRecord1, dnsRecord2, dnsRecord3]
         )
 
         // Test uncompressed encoding
@@ -156,18 +160,18 @@ struct DNSPacketTests {
         )
 
         let packet1 = DNSPacket(
-            header: .mock,
+            id: 599,
+            isResponse: true,
+            isRecursionDesired: false,
             queries: [dnsQuery1],
-            records: [dnsRecord1],
-            authorities: [],
-            resources: []
+            records: [dnsRecord1]
         )
         let packet2 = DNSPacket(
-            header: .mock,
+            id: 599,
+            isResponse: true,
+            isRecursionDesired: false,
             queries: [dnsQuery1],
-            records: [dnsRecord1],
-            authorities: [],
-            resources: []
+            records: [dnsRecord1]
         )
 
         #expect(packet1 == packet2)
@@ -191,43 +195,210 @@ struct DNSPacketTests {
         )
 
         let packet1 = DNSPacket(
-            header: .mock,
-            queries: [],
-            records: [dnsRecord1, dnsRecord2],
-            authorities: [],
-            resources: []
+            id: 1,
+            isRecursionDesired: false,
+            records: [dnsRecord1, dnsRecord2]
         )
         let packet2 = DNSPacket(
-            header: .mock,
-            queries: [],
-            records: [dnsRecord2, dnsRecord1],
-            authorities: [],
-            resources: []
+            id: 1,
+            isRecursionDesired: false,
+            records: [dnsRecord2, dnsRecord1]
         )
 
         #expect(packet1 != packet2)
     }
 
-}
+    // MARK: - Public Initializer
 
-extension DNSHeader {
+    @Test("default flags produce a standard query header")
+    func defaultFlags() {
+        let packet = DNSPacket()
 
-    static let mock = DNSHeader(
-        id: 599,
-        isRecursionDesired: false,
-        isMessageTruncated: false,
-        isAnswerAuthoritative: true,
-        isCheckingDisabled: false,
-        isAuthenticatedData: true,
-        isRecursionAvailable: true,
-        isResponse: true,
-        operationCode: .inverseQuery,
-        resultCode: .noError,
-        z: false,
-        numberOfQueries: 3,
-        numberOfRecords: 3,
-        numberOfAuthorities: 0,
-        numberOfResources: 0
-    )
+        #expect(packet.header.operationCode == .query)
+        #expect(packet.header.resultCode == .noError)
+        #expect(packet.header.isResponse == false)
+        #expect(packet.header.isRecursionDesired == true)
+        #expect(packet.header.isRecursionAvailable == false)
+        #expect(packet.header.isAnswerAuthoritative == false)
+        #expect(packet.header.isMessageTruncated == false)
+        #expect(packet.header.isCheckingDisabled == false)
+        #expect(packet.header.isAuthenticatedData == false)
+        #expect(packet.header.z == false)
+        #expect(packet.queries.isEmpty)
+        #expect(packet.records.isEmpty)
+        #expect(packet.authorities.isEmpty)
+        #expect(packet.resources.isEmpty)
+    }
+
+    @Test("header counts match array lengths")
+    func headerCountsMatchArrays() {
+        let queries = [
+            DNSQuery(labels: ["example", "com"], recordType: .a, recordClass: 1),
+            DNSQuery(labels: ["example", "org"], recordType: .aaaa, recordClass: 1),
+        ]
+        let records: [any DNSRecord] = [
+            ARecord(
+                labels: DNSLabels(labels: ["example", "com"]),
+                recordType: .a,
+                recordClass: 1,
+                timeToLive: 300,
+                address: IPv4Address(93, 184, 216, 34)
+            )
+        ]
+
+        let packet = DNSPacket(id: 42, queries: queries, records: records)
+
+        #expect(packet.header.numberOfQueries == 2)
+        #expect(packet.header.numberOfRecords == 1)
+        #expect(packet.header.numberOfAuthorities == 0)
+        #expect(packet.header.numberOfResources == 0)
+    }
+
+    @Test("custom flags propagate correctly")
+    func customFlags() {
+        let packet = DNSPacket(
+            id: 1234,
+            operationCode: .status,
+            resultCode: .serverFailure,
+            isResponse: true,
+            isRecursionDesired: false,
+            isRecursionAvailable: true,
+            isAnswerAuthoritative: true,
+            isMessageTruncated: true,
+            isCheckingDisabled: true,
+            isAuthenticatedData: true
+        )
+
+        #expect(packet.header.id == 1234)
+        #expect(packet.header.operationCode == .status)
+        #expect(packet.header.resultCode == .serverFailure)
+        #expect(packet.header.isResponse == true)
+        #expect(packet.header.isRecursionDesired == false)
+        #expect(packet.header.isRecursionAvailable == true)
+        #expect(packet.header.isAnswerAuthoritative == true)
+        #expect(packet.header.isMessageTruncated == true)
+        #expect(packet.header.isCheckingDisabled == true)
+        #expect(packet.header.isAuthenticatedData == true)
+    }
+
+    // MARK: - Response Factory
+
+    @Test("response factory copies request metadata")
+    func responseFactory() {
+        let request = DNSPacket(
+            id: 9999,
+            operationCode: .inverseQuery,
+            isRecursionDesired: true,
+            queries: [DNSQuery(labels: ["example", "com"], recordType: .a, recordClass: 1)]
+        )
+
+        let answerRecord = ARecord(
+            labels: DNSLabels(labels: ["example", "com"]),
+            recordType: .a,
+            recordClass: 1,
+            timeToLive: 300,
+            address: IPv4Address(93, 184, 216, 34)
+        )
+
+        let response = request.makeResponse(
+            isRecursionAvailable: true,
+            isAnswerAuthoritative: true,
+            records: [answerRecord]
+        )
+
+        // Copied from request
+        #expect(response.header.id == 9999)
+        #expect(response.header.operationCode == .inverseQuery)
+        #expect(response.header.isRecursionDesired == true)
+        #expect(response.queries == request.queries)
+
+        // Set by response factory
+        #expect(response.header.isResponse == true)
+        #expect(response.header.resultCode == .noError)
+        #expect(response.header.isRecursionAvailable == true)
+        #expect(response.header.isAnswerAuthoritative == true)
+
+        // Counts derived from arrays
+        #expect(response.header.numberOfQueries == 1)
+        #expect(response.header.numberOfRecords == 1)
+        #expect(response.header.numberOfAuthorities == 0)
+        #expect(response.header.numberOfResources == 0)
+    }
+
+    @Test("response factory with error result code")
+    func responseFactoryWithError() {
+        let request = DNSPacket(
+            id: 42,
+            queries: [DNSQuery(labels: ["nonexistent", "example"], recordType: .a, recordClass: 1)]
+        )
+
+        let response = request.makeResponse(resultCode: .nonExistentDomain)
+
+        #expect(response.header.id == 42)
+        #expect(response.header.isResponse == true)
+        #expect(response.header.resultCode == .nonExistentDomain)
+        #expect(response.records.isEmpty)
+    }
+
+    // MARK: - Round-Trip
+
+    @Test("packet constructed with public init round-trips through encode and decode")
+    func publicInitRoundTrip() throws {
+        let query = DNSQuery(labels: ["example", "com"], recordType: .a, recordClass: 1)
+        let record = ARecord(
+            labels: DNSLabels(labels: ["example", "com"]),
+            recordType: .a,
+            recordClass: 1,
+            timeToLive: 300,
+            address: IPv4Address(93, 184, 216, 34)
+        )
+
+        let original = DNSPacket(
+            id: 12345,
+            isResponse: true,
+            isRecursionDesired: true,
+            isRecursionAvailable: true,
+            isAnswerAuthoritative: true,
+            queries: [query],
+            records: [record]
+        )
+
+        let encoder = DNSPacketEncoder()
+        let data = try encoder.encode(packet: original)
+
+        let decoder = DNSPacketDecoder()
+        let decoded = try decoder.decode(from: data)
+
+        #expect(decoded == original)
+    }
+
+    @Test("response factory packet round-trips through encode and decode")
+    func responseFactoryRoundTrip() throws {
+        let request = DNSPacket(
+            id: 7777,
+            queries: [DNSQuery(labels: ["example", "com"], recordType: .a, recordClass: 1)]
+        )
+
+        let record = ARecord(
+            labels: DNSLabels(labels: ["example", "com"]),
+            recordType: .a,
+            recordClass: 1,
+            timeToLive: 60,
+            address: IPv4Address(10, 0, 0, 1)
+        )
+
+        let response = request.makeResponse(
+            isRecursionAvailable: true,
+            records: [record]
+        )
+
+        let encoder = DNSPacketEncoder()
+        let data = try encoder.encode(packet: response)
+
+        let decoder = DNSPacketDecoder()
+        let decoded = try decoder.decode(from: data)
+
+        #expect(decoded == response)
+    }
 
 }
