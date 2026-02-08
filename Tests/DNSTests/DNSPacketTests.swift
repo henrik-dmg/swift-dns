@@ -281,6 +281,16 @@ struct DNSPacketTests {
         #expect(packet.header.isAuthenticatedData == true)
     }
 
+    @Test("throws when too many queries provided")
+    func tooManyQueries() throws {
+        let query = DNSQuery(labels: ["test"], recordType: .a, recordClass: 1)
+        let queries = Array(repeating: query, count: Int(UInt16.max) + 1)
+
+        #expect(throws: EncoderError.self) {
+            try DNSPacket(queries: queries)
+        }
+    }
+
     // MARK: - Response Factory
 
     @Test("response factory copies request metadata")

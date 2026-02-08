@@ -238,7 +238,7 @@ extension DNSPacket: Equatable {
         case .mx:
             areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: MXRecord.self)
         case .soa:
-            areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: UnknownRecord.self)
+            areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: SOARecord.self)
         case .txt:
             areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: TXTRecord.self)
         }
