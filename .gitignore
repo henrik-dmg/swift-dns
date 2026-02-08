@@ -8,3 +8,4 @@ DerivedData/
 .netrc
 /coverage
 /docs
+/.claude/settings.local.json
