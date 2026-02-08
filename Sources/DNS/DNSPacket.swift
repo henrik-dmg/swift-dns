@@ -44,8 +44,8 @@ extension DNSPacket: Equatable {
         }
 
         return areRecordArraysEqual(lhs: lhs.records, rhs: rhs.records)
-        && areRecordArraysEqual(lhs: lhs.authorities, rhs: rhs.authorities)
-        && areRecordArraysEqual(lhs: lhs.resources, rhs: rhs.resources)
+            && areRecordArraysEqual(lhs: lhs.authorities, rhs: rhs.authorities)
+            && areRecordArraysEqual(lhs: lhs.resources, rhs: rhs.resources)
     }
 
     /// Compares two arrays of DNS records for equality.

@@ -1,10 +1,28 @@
 #!/usr/bin/env bash
 
 GIT_ROOT=$(git rev-parse --show-toplevel)
+GIT_HOOKS=$(git rev-parse --git-path hooks)
+HOOKS_SOURCE="$GIT_ROOT/Scripts/hooks"
 
-# Check if the pre-commit hook already exists
-if [ -f "$GIT_ROOT/.git/hooks/pre-commit" ]; then
-  rm "$GIT_ROOT/.git/hooks/pre-commit"
-fi
+echo "Installing git hooks from $HOOKS_SOURCE..."
 
-ln -s "$GIT_ROOT/Scripts/lint-swift-code" "$GIT_ROOT/.git/hooks/pre-commit"
+# Loop through all files in Scripts/hooks
+for hook_file in "$HOOKS_SOURCE"/*; do
+  if [ -f "$hook_file" ]; then
+    hook_name=$(basename "$hook_file")
+    target_path="$GIT_HOOKS/$hook_name"
+
+    # Remove existing hook if it exists
+    if [ -f "$target_path" ] || [ -L "$target_path" ]; then
+      echo "  Removing existing $hook_name hook..."
+      rm "$target_path"
+    fi
+
+    # Create symlink
+    echo "  Installing $hook_name hook..."
+    ln -s "$hook_file" "$target_path"
+    echo "  Successfully installed $hook_name hook at $target_path"
+  fi
+done
+
+echo "Git hooks installation complete!"
