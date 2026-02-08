@@ -157,10 +157,10 @@ public struct NSRecord: DNSRecord, DNSRecordEncodable {
     public let lengthOfCustomData: UInt16
 
     /// The domain name of the name server.
-    public let paylodLabels: DNSLabels
+    public let payloadLabels: DNSLabels
 
     func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
-        try buffer.write(paylodLabels)
+        try buffer.write(payloadLabels)
     }
 
 }
@@ -179,10 +179,10 @@ public struct CNAMERecord: DNSRecord, DNSRecordEncodable {
     public let lengthOfCustomData: UInt16
 
     /// The canonical domain name that the alias points to.
-    public let paylodLabels: DNSLabels
+    public let payloadLabels: DNSLabels
 
     func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
-        try buffer.write(paylodLabels)
+        try buffer.write(payloadLabels)
     }
 
 }
@@ -206,11 +206,11 @@ public struct MXRecord: DNSRecord, DNSRecordEncodable {
     public let priority: UInt16
 
     /// The domain name of the mail server.
-    public let paylodLabels: DNSLabels
+    public let payloadLabels: DNSLabels
 
     func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws {
         buffer.write(priority)
-        try buffer.write(paylodLabels)
+        try buffer.write(payloadLabels)
     }
 
 }

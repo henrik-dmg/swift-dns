@@ -21,32 +21,32 @@ extension DNSRecordDecoder: DNSPacketDecodable {
         // Save the position where RDATA starts for records that need full packet access
         let rdataStartIndex = byteBuffer.currentIndex
 
-        let customData = try byteBuffer.readBytes(Int(lengthOfCustomData))
-
         switch recordType {
         case .a:
             // Decodes an IPv4 A record
             guard lengthOfCustomData == 4 else {
                 throw DecoderError.rdataLengthMismatch(expected: 4, actual: Int(lengthOfCustomData))
             }
+            let fragments = try byteBuffer.readBytes(Int(lengthOfCustomData))
             return ARecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
-                address: IPv4Address(fragments: Array(customData))
+                address: IPv4Address(fragments: Array(fragments))
             )
         case .aaaa:
             // Decodes an IPv6 AAAA record
             guard lengthOfCustomData == 16 else {
                 throw DecoderError.rdataLengthMismatch(expected: 16, actual: Int(lengthOfCustomData))
             }
+            let fragments = try byteBuffer.readBytes(Int(lengthOfCustomData))
             return AAAARecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
-                address: try IPv6Address(fragments: Array(customData))
+                address: try IPv6Address(fragments: Array(fragments))
             )
         case .ns:
             // Decode the nameserver domain from the RDATA.
@@ -64,7 +64,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 recordClass: recordClass,
                 timeToLive: timeToLive,
                 lengthOfCustomData: lengthOfCustomData,
-                paylodLabels: payloadLabels
+                payloadLabels: payloadLabels
             )
         case .cname:
             // Decode the canonical name from the RDATA.
@@ -82,7 +82,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 recordClass: recordClass,
                 timeToLive: timeToLive,
                 lengthOfCustomData: lengthOfCustomData,
-                paylodLabels: payloadLabels
+                payloadLabels: payloadLabels
             )
         case .mx:
             // Decode priority and mail server domain from the RDATA.
@@ -102,7 +102,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 timeToLive: timeToLive,
                 lengthOfCustomData: lengthOfCustomData,
                 priority: priority,
-                paylodLabels: payloadLabels
+                payloadLabels: payloadLabels
             )
         case .soa:
             // Decode SOA record fields from the RDATA.
@@ -136,6 +136,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
             )
         case .txt:
             // Decodes an arbitrary TXT record
+            let customData = try byteBuffer.readBytes(Int(lengthOfCustomData))
             let lengthOfString = customData[0]
             let contentData = customData.dropFirst()
             guard let content = String(data: contentData, encoding: .ascii), content.count == Int(lengthOfString) else {
@@ -150,6 +151,7 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 content: content
             )
         case .unknown:
+            let customData = try byteBuffer.readBytes(Int(lengthOfCustomData))
             return UnknownRecord(
                 labels: labels,
                 recordType: recordType,
