@@ -118,6 +118,6 @@ extension IPv6Address: CustomDebugStringConvertible {
     /// Returns a debug description of the IPv6 address.
     ///
     /// The format is "IPv6(x:x:x:x:x:x:x:x)" where x:x:x:x:x:x:x:x is the hexadecimal representation.
-    public var debugDescription: String { "IPv6(\(formattedAddress())" }
+    public var debugDescription: String { "IPv6(\(formattedAddress()))" }
 
 }

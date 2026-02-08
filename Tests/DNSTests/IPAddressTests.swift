@@ -7,7 +7,7 @@
 
 import Testing
 
-@testable import DNSKit
+@testable import DNS
 
 @Suite
 struct IPAddressTests {

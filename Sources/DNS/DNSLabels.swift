@@ -29,7 +29,7 @@ public struct DNSLabels: Equatable, Sendable {
     /// The array of string labels that make up the domain name.
     ///
     /// Each string represents a component of the domain name in order from left to right.
-    public var labels: [String]
+    public let labels: [String]
 
 }
 
@@ -54,9 +54,9 @@ extension DNSLabels: DNSPacketDecodable {
     static func decode(from byteBuffer: inout ByteBufferReading) throws -> DNSLabels {
         var labels: [String] = []
 
-        // Store the initial position for handling jumps
-        let initialPosition = byteBuffer.currentIndex
-        var hasJumped = false
+        // Track position of first compression pointer encountered (if any).
+        // This is where we need to seek back to after following jumps.
+        var firstJumpPointerPosition: Int? = nil
         var jumpsPerformed = 0
 
         while true {
@@ -73,7 +73,12 @@ extension DNSLabels: DNSPacketDecodable {
 
             // Check for compression jump
             if (labelLength & Self.jumpDirective) == Self.jumpDirective {
-                hasJumped = true
+                // Record position of first jump pointer (before we read the second byte).
+                // The pointer started 1 byte ago (the labelLength byte we just read).
+                if firstJumpPointerPosition == nil {
+                    firstJumpPointerPosition = byteBuffer.currentIndex - 1
+                }
+
                 // Calculate jump destination from the two bytes
                 let jumpDestinationByte = try byteBuffer.readByte()
                 let labelOffset =
@@ -90,10 +95,10 @@ extension DNSLabels: DNSPacketDecodable {
             }
         }
 
-        // If we followed a jump, return to the position after the jump pointer
-        if hasJumped {
-            // +2 because if we jumped, we need to skip past the two jump directive bytes
-            try byteBuffer.seek(initialPosition + 2)
+        // If we followed a jump, return to the position after the first jump pointer.
+        // The pointer is 2 bytes, so we seek to firstJumpPointerPosition + 2.
+        if let jumpPosition = firstJumpPointerPosition {
+            try byteBuffer.seek(jumpPosition + 2)
         }
 
         // Ensure we decoded at least one label

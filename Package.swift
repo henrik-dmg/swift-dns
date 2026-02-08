@@ -10,22 +10,22 @@ let package = Package(
         .iOS(.v16),
     ],
     products: [
-        .library(name: "DNS", targets: ["DNSKit"])
+        .library(name: "DNS", targets: ["DNS"])
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-log.git", .upToNextMajor(from: "1.0.0"))
     ],
     targets: [
         .target(
-            name: "DNSKit",
+            name: "DNS",
             dependencies: [
                 .product(name: "Logging", package: "swift-log")
             ]
         ),
         .testTarget(
-            name: "DNSKitTests",
+            name: "DNSTests",
             dependencies: [
-                "DNSKit"
+                "DNS"
             ],
             resources: [
                 .process("Resources")

@@ -38,32 +38,39 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 address: try IPv6Address(fragments: Array(customData))
             )
         case .ns:
+            // Decode the nameserver domain from the record's RDATA (customData),
+            // not from the main byteBuffer which has already advanced past the record.
+            var subBuffer: any ByteBufferReading = ByteBufferReader(customData)
             return NSRecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
                 lengthOfCustomData: lengthOfCustomData,
-                paylodLabels: try DNSLabels.decode(from: &byteBuffer)
+                paylodLabels: try DNSLabels.decode(from: &subBuffer)
             )
         case .cname:
+            // Decode the canonical name from the record's RDATA (customData).
+            var subBuffer: any ByteBufferReading = ByteBufferReader(customData)
             return CNAMERecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
                 lengthOfCustomData: lengthOfCustomData,
-                paylodLabels: try DNSLabels.decode(from: &byteBuffer)
+                paylodLabels: try DNSLabels.decode(from: &subBuffer)
             )
         case .mx:
+            // Decode priority and mail server domain from the record's RDATA (customData).
+            var subBuffer: any ByteBufferReading = ByteBufferReader(customData)
             return MXRecord(
                 labels: labels,
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
                 lengthOfCustomData: lengthOfCustomData,
-                priority: try byteBuffer.readUInt16(),
-                paylodLabels: try DNSLabels.decode(from: &byteBuffer)
+                priority: try subBuffer.readUInt16(),
+                paylodLabels: try DNSLabels.decode(from: &subBuffer)
             )
         case .txt:
             let lengthOfString = customData[0]

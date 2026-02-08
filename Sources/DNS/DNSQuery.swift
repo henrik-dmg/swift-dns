@@ -16,12 +16,12 @@ public struct DNSQuery: Equatable {
     /// The domain name being queried, represented as DNS labels.
     ///
     /// Each label is a string component of the domain name (e.g., ["www", "example", "com"]).
-    public var labels: DNSLabels
+    public let labels: DNSLabels
 
     /// The type of DNS record being requested (e.g., A, AAAA, MX, etc.).
     ///
     /// This determines what kind of information is being queried for the domain.
-    public var recordType: DNSRecordType
+    public let recordType: DNSRecordType
 
     /// The class of the record being requested.
     ///

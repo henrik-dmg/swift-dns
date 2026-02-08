@@ -68,6 +68,6 @@ extension IPv4Address: CustomDebugStringConvertible {
     /// Returns a debug description of the IPv4 address.
     ///
     /// The format is "IPv4(x.x.x.x)" where x.x.x.x is the dotted-decimal representation.
-    public var debugDescription: String { "IPv4(\(formattedAddress())" }
+    public var debugDescription: String { "IPv4(\(formattedAddress()))" }
 
 }

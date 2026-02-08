@@ -20,7 +20,7 @@ dependencies: [
 Then add the library as a dependency to your target:
 
 ```swift
-.product(name: "DNSKit", package: "swift-dns")
+.product(name: "DNS", package: "swift-dns")
 ```
 
 Or if you're using Xcode, enter the following URL in the `Package URL` field:
@@ -38,6 +38,8 @@ The documentation can be found at https://henrik-dmg.github.io/swift-dns
 Decoding a packet from bytes is straightforward, simply call `DNSPacket.decode(from:)`.
 
 ```swift
+import DNS
+
 let data: Data // Bytes you received from somewhere else
 let decoder = DNSPacketDecoder() // Create a decoder
 let packet = try decoder.decode(from: data)
@@ -54,6 +56,8 @@ print(packet.resources)
 Encoding a packet is just as easy, simply call `DNSPacketEncoder.encode(packet:)`.
 
 ```swift
+import DNS
+
 let encoder = DNSPacketEncoder() // Create an encoder
 encoder.shouldCompressLabels = false // Disable label compression if you want
 let data = try encoder.encode(packet: packet) // Encode the packet

@@ -15,30 +15,30 @@ public struct DNSHeader: Equatable, Sendable {
     /// A 16-bit identifier assigned by the program that generates any kind of query.
     ///
     /// This identifier is copied in the corresponding reply and can be used to match responses with queries.
-    public var id: UInt16
+    public let id: UInt16
 
     /// Indicates whether the name server should pursue the query recursively.
     ///
     /// If set, the name server will attempt to resolve the query by contacting other name servers if necessary.
-    public var isRecursionDesired: Bool
+    public let isRecursionDesired: Bool
 
     /// Indicates that the message was truncated due to length greater than that permitted on the transmission channel.
-    public var isMessageTruncated: Bool
+    public let isMessageTruncated: Bool
 
     /// Indicates that the responding name server is an authority for the domain name in the question section.
-    public var isAnswerAuthorative: Bool
+    public let isAnswerAuthorative: Bool
 
     /// Indicates that checking of the response data is disabled.
-    public var isCheckingDisabled: Bool
+    public let isCheckingDisabled: Bool
 
     /// Indicates that the data included in the response is authenticated.
-    public var isAuthenticatedData: Bool
+    public let isAuthenticatedData: Bool
 
     /// Indicates whether recursive query support is available in the name server.
-    public var isRecursionAvailable: Bool
+    public let isRecursionAvailable: Bool
 
     /// A one-bit field that specifies whether this message is a query (0) or a response (1).
-    public var isResponse: Bool
+    public let isResponse: Bool
 
     /// A 4-bit field that specifies the kind of query in this message.
     ///
@@ -46,29 +46,29 @@ public struct DNSHeader: Equatable, Sendable {
     /// - 0: Standard query (QUERY)
     /// - 1: Inverse query (IQUERY)
     /// - 2: Server status request (STATUS)
-    public var operationCode: DNSOperationCode
+    public let operationCode: DNSOperationCode
 
     /// A 4-bit field that indicates the response code for the query.
     ///
     /// This field is set as part of responses and indicates success or various error conditions.
-    public var resultCode: DNSResultCode
+    public let resultCode: DNSResultCode
 
     /// Reserved for future use.
     ///
     /// Must be zero in all queries and responses.
-    public var z: Bool
+    public let z: Bool
 
     /// The number of entries in the question section of the message.
-    public var numberOfQueries: UInt16
+    public let numberOfQueries: UInt16
 
     /// The number of resource records in the answer section of the message.
-    public var numberOfRecords: UInt16
+    public let numberOfRecords: UInt16
 
     /// The number of name server resource records in the authority records section of the message.
-    public var numberOfAuthorities: UInt16
+    public let numberOfAuthorities: UInt16
 
     /// The number of resource records in the additional records section of the message.
-    public var numberOfResources: UInt16
+    public let numberOfResources: UInt16
 
 }
 
@@ -78,7 +78,7 @@ extension DNSHeader: DNSPacketDecodable {
 
     /// Decodes a DNS header from a byte buffer according to the DNS message format specification.
     ///
-    /// The header is structured as follows:
+    /// The header is structured as follows (12 bytes total):
     ///
     /// | RFC Name | Descriptive Name     | Length             |
     /// | -------- | -------------------- | ------------------ |

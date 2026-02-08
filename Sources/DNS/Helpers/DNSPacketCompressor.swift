@@ -134,16 +134,52 @@ struct DNSPacketCompressor: ByteBufferWriting {
         labelPositions.append(labelPosition)
     }
 
-    /// Finds an existing label in the byte buffer that matches the remaining labels.
+    /// Finds an existing label sequence in the byte buffer that matches the remaining labels.
+    ///
+    /// This method supports both exact matches and suffix matches for DNS compression.
+    /// For example, if "example.com" was previously written and we need to write "google.com",
+    /// this will find that ".com" is a common suffix and return its position.
+    ///
     /// - Parameter remainingLabels: The remaining labels to find.
     /// - Returns: A continuous label position if a match is found, otherwise nil.
     private func findExistingLabel(remainingLabels: [String]) -> DNSContinuousLabelPosition? {
-        guard !labelPositions.isEmpty else {
+        guard !labelPositions.isEmpty, !remainingLabels.isEmpty else {
             return nil
         }
 
         let continuousLabelGroups = labelPositions.continuousPositions()
-        return continuousLabelGroups.first { labelPosition in labelPosition.labels == remainingLabels }
+
+        // First, try to find an exact match (most efficient compression)
+        if let exactMatch = continuousLabelGroups.first(where: { $0.labels == remainingLabels }) {
+            return exactMatch
+        }
+
+        // Then, look for suffix matches within existing groups.
+        // For example, if we have ["example", "com"] and need ["com"],
+        // we should find the position of "com" within the group.
+        for group in continuousLabelGroups where group.labels.count > remainingLabels.count {
+            let groupSuffix = Array(group.labels.suffix(remainingLabels.count))
+            if groupSuffix == remainingLabels {
+                // Calculate the offset where this suffix starts within the group.
+                // We need to skip past the prefix labels to find where our suffix begins.
+                let prefixCount = group.labels.count - remainingLabels.count
+                var suffixOffset = group.index
+
+                // Walk through the prefix labels to find where the suffix starts
+                for i in 0 ..< prefixCount {
+                    let prefixLabel = group.labels[i]
+                    // Each label takes: 1 byte (length) + label.count bytes
+                    suffixOffset += UInt16(1 + prefixLabel.count)
+                }
+
+                return DNSContinuousLabelPosition(index: suffixOffset, labels: remainingLabels)
+            }
+        }
+
+        // Also check if any single previously written label matches the first remaining label,
+        // which could start a longer match. But this is already handled by the group iteration above.
+
+        return nil
     }
 
 }

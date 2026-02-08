@@ -8,7 +8,7 @@
 import Foundation
 import Testing
 
-@testable import DNSKit
+@testable import DNS
 
 @Suite
 struct DNSHeaderTests {
