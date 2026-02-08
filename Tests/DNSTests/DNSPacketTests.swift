@@ -114,7 +114,7 @@ struct DNSPacketTests {
             address: IPv4Address(192, 168, 178, 3)
         )
 
-        let packet = DNSPacket(
+        let packet = try DNSPacket(
             id: 599,
             operationCode: .inverseQuery,
             isResponse: true,
@@ -148,7 +148,7 @@ struct DNSPacketTests {
     }
 
     @Test("packets are equal")
-    func packetsAreEqual() {
+    func packetsAreEqual() throws {
         let dnsQuery1 = DNSQuery(labels: ["mail", "google", "com"], recordType: .a, recordClass: 1)
 
         let dnsRecord1 = ARecord(
@@ -159,14 +159,14 @@ struct DNSPacketTests {
             address: IPv4Address(192, 168, 178, 1)
         )
 
-        let packet1 = DNSPacket(
+        let packet1 = try DNSPacket(
             id: 599,
             isResponse: true,
             isRecursionDesired: false,
             queries: [dnsQuery1],
             records: [dnsRecord1]
         )
-        let packet2 = DNSPacket(
+        let packet2 = try DNSPacket(
             id: 599,
             isResponse: true,
             isRecursionDesired: false,
@@ -178,7 +178,7 @@ struct DNSPacketTests {
     }
 
     @Test("packets are not equal")
-    func packetsAreNotEqual() {
+    func packetsAreNotEqual() throws {
         let dnsRecord1 = ARecord(
             labels: DNSLabels(labels: ["mail", "google", "com"]),
             recordType: .a,
@@ -194,12 +194,12 @@ struct DNSPacketTests {
             address: IPv4Address(192, 168, 178, 2)
         )
 
-        let packet1 = DNSPacket(
+        let packet1 = try DNSPacket(
             id: 1,
             isRecursionDesired: false,
             records: [dnsRecord1, dnsRecord2]
         )
-        let packet2 = DNSPacket(
+        let packet2 = try DNSPacket(
             id: 1,
             isRecursionDesired: false,
             records: [dnsRecord2, dnsRecord1]
@@ -211,8 +211,8 @@ struct DNSPacketTests {
     // MARK: - Public Initializer
 
     @Test("default flags produce a standard query header")
-    func defaultFlags() {
-        let packet = DNSPacket()
+    func defaultFlags() throws {
+        let packet = try DNSPacket()
 
         #expect(packet.header.operationCode == .query)
         #expect(packet.header.resultCode == .noError)
@@ -231,7 +231,7 @@ struct DNSPacketTests {
     }
 
     @Test("header counts match array lengths")
-    func headerCountsMatchArrays() {
+    func headerCountsMatchArrays() throws {
         let queries = [
             DNSQuery(labels: ["example", "com"], recordType: .a, recordClass: 1),
             DNSQuery(labels: ["example", "org"], recordType: .aaaa, recordClass: 1),
@@ -246,7 +246,7 @@ struct DNSPacketTests {
             )
         ]
 
-        let packet = DNSPacket(id: 42, queries: queries, records: records)
+        let packet = try DNSPacket(id: 42, queries: queries, records: records)
 
         #expect(packet.header.numberOfQueries == 2)
         #expect(packet.header.numberOfRecords == 1)
@@ -255,8 +255,8 @@ struct DNSPacketTests {
     }
 
     @Test("custom flags propagate correctly")
-    func customFlags() {
-        let packet = DNSPacket(
+    func customFlags() throws {
+        let packet = try DNSPacket(
             id: 1234,
             operationCode: .status,
             resultCode: .serverFailure,
@@ -284,8 +284,8 @@ struct DNSPacketTests {
     // MARK: - Response Factory
 
     @Test("response factory copies request metadata")
-    func responseFactory() {
-        let request = DNSPacket(
+    func responseFactory() throws {
+        let request = try DNSPacket(
             id: 9999,
             operationCode: .inverseQuery,
             isRecursionDesired: true,
@@ -300,7 +300,7 @@ struct DNSPacketTests {
             address: IPv4Address(93, 184, 216, 34)
         )
 
-        let response = request.makeResponse(
+        let response = try request.makeResponse(
             isRecursionAvailable: true,
             isAnswerAuthoritative: true,
             records: [answerRecord]
@@ -326,13 +326,13 @@ struct DNSPacketTests {
     }
 
     @Test("response factory with error result code")
-    func responseFactoryWithError() {
-        let request = DNSPacket(
+    func responseFactoryWithError() throws {
+        let request = try DNSPacket(
             id: 42,
             queries: [DNSQuery(labels: ["nonexistent", "example"], recordType: .a, recordClass: 1)]
         )
 
-        let response = request.makeResponse(resultCode: .nonExistentDomain)
+        let response = try request.makeResponse(resultCode: .nonExistentDomain)
 
         #expect(response.header.id == 42)
         #expect(response.header.isResponse == true)
@@ -353,7 +353,7 @@ struct DNSPacketTests {
             address: IPv4Address(93, 184, 216, 34)
         )
 
-        let original = DNSPacket(
+        let original = try DNSPacket(
             id: 12345,
             isResponse: true,
             isRecursionDesired: true,
@@ -374,7 +374,7 @@ struct DNSPacketTests {
 
     @Test("response factory packet round-trips through encode and decode")
     func responseFactoryRoundTrip() throws {
-        let request = DNSPacket(
+        let request = try DNSPacket(
             id: 7777,
             queries: [DNSQuery(labels: ["example", "com"], recordType: .a, recordClass: 1)]
         )
@@ -387,7 +387,7 @@ struct DNSPacketTests {
             address: IPv4Address(10, 0, 0, 1)
         )
 
-        let response = request.makeResponse(
+        let response = try request.makeResponse(
             isRecursionAvailable: true,
             records: [record]
         )

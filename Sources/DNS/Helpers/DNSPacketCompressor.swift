@@ -61,7 +61,7 @@ struct DNSPacketCompressor: ByteBufferWriting {
     /// Writes DNS labels to the byte buffer, using compression if possible.
     /// - Parameter labels: The DNS labels to write.
     /// - Throws: An error if writing the labels fails.
-    mutating func write(_ labels: DNSLabels) throws {
+    mutating func write(_ labels: DNSLabels) throws(EncoderError) {
         // Labels left to encode (each a domain fragment, e.g., "www", "google", "com")
         var remainingLabelsToEncode = labels.labels
 
@@ -127,7 +127,7 @@ struct DNSPacketCompressor: ByteBufferWriting {
     /// Writes a single DNS label to the byte buffer.
     /// - Parameter label: The label to write.
     /// - Throws: An error if writing the label fails.
-    private mutating func writeLabel(_ label: String) throws {
+    private mutating func writeLabel(_ label: String) throws(EncoderError) {
         let offset = byteBuffer.currentIndex
         try byteBuffer.write(label)
         let labelPosition = DNSLabelPosition(index: UInt16(offset), label: label)
