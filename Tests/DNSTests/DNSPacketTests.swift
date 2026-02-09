@@ -69,12 +69,13 @@ struct DNSPacketTests {
         encoder.shouldCompressLabels = true
         let encodedPacket = try encoder.encode(packet: packet)
 
-        #expect(encodedPacket == data)
-        print(packet.records)
         if encodedPacket != data {
+            print(packet.records)
             print(data.hexEncodedString(options: .upperCase))
             print(encodedPacket.hexEncodedString(options: .upperCase))
         }
+
+        #expect(encodedPacket == data)
     }
 
     @Test("encodes custom package")

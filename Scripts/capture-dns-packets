@@ -2,8 +2,19 @@
 
 """
 Script to capture DNS packets from dig command
+
+IMPORTANT: This script requires sudo privileges to run tcpdump for packet capture.
+On Linux, you can avoid sudo by setting capabilities:
+    sudo setcap cap_net_raw=eip /usr/bin/tcpdump
+
 Usage: ./capture-dns-packets [dig arguments]
 Example: ./capture-dns-packets @8.8.8.8 example.com A
+
+The script will:
+1. Start tcpdump to capture DNS traffic on port 53
+2. Execute the dig command with provided arguments
+3. Extract DNS query and response packets
+4. Save them as binary files for testing
 """
 
 import sys
@@ -13,6 +24,8 @@ import struct
 import os
 import time
 import signal
+import shutil
+import re
 
 
 def read_pcap_packet(pcap_file):
@@ -106,19 +119,41 @@ def read_pcap_packet(pcap_file):
         return packets
 
 
-def main():
-    if len(sys.argv) < 2:
-        print("Usage: ./capture-dns-packets-python [dig arguments]")
-        print("Example: ./capture-dns-packets-python @8.8.8.8 example.com A")
+def validate_and_sanitize_args(args):
+    """Validate and sanitize command line arguments for safe filename generation"""
+    # Check for required commands
+    for cmd in ["dig", "tcpdump", "ifconfig"]:
+        if shutil.which(cmd) is None:
+            print(f"Error: '{cmd}' command not found. Please install it first.")
+            sys.exit(1)
+
+    # Validate that we have arguments
+    if not args:
+        print("Usage: ./capture-dns-packets [dig arguments]")
+        print("Example: ./capture-dns-packets @8.8.8.8 example.com A")
         sys.exit(1)
 
-    # Create filename suffix from arguments
-    args_str = " ".join(sys.argv[1:])
+    # Sanitize arguments for safe filename generation
+    # Only allow alphanumeric, dots, hyphens, and @
+    args_str = " ".join(args)
+    if not re.match(r"^[@a-zA-Z0-9.\s+-]+$", args_str):
+        print("Error: Invalid characters in dig arguments")
+        print("Only alphanumeric characters, dots, @, +, and - are allowed")
+        sys.exit(1)
+
+    # Create safe filename suffix
     filename_suffix = (
         args_str.replace("@", "").replace("+", "").replace(" ", "-").replace("/", "-")
     )
     while "--" in filename_suffix:
         filename_suffix = filename_suffix.replace("--", "-")
+
+    return filename_suffix
+
+
+def main():
+    # Validate and sanitize input
+    filename_suffix = validate_and_sanitize_args(sys.argv[1:])
 
     # Output files
     sent_file = f"query-{filename_suffix}"
@@ -130,34 +165,59 @@ def main():
 
     # Determine interface
     try:
-        subprocess.run(["ifconfig", "en0"], check=True, capture_output=True)
+        subprocess.run(["ifconfig", "en0"], check=True, capture_output=True, timeout=5)
         interface = "en0"
-    except:
+    except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
         interface = "any"
 
     print(f"Starting packet capture on interface {interface}...")
 
     # Start tcpdump
-    tcpdump_proc = subprocess.Popen(
-        ["sudo", "tcpdump", "-i", interface, "-s0", "-w", capture_file, "port 53"],
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    )
+    try:
+        tcpdump_proc = subprocess.Popen(
+            ["sudo", "tcpdump", "-i", interface, "-s0", "-w", capture_file, "port 53"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except PermissionError:
+        print(
+            "Error: Permission denied. This script requires sudo privileges for tcpdump."
+        )
+        print("Please run with sudo or set capabilities (Linux):")
+        print("  sudo setcap cap_net_raw=eip /usr/bin/tcpdump")
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        sys.exit(1)
 
-    # Wait for tcpdump to start
-    time.sleep(0.5)
+    # Wait for tcpdump to start (increased for reliability)
+    time.sleep(1.0)
 
-    # Run dig
+    # Run dig with timeout
     print(f"Running: dig {' '.join(sys.argv[1:])}")
-    subprocess.run(["dig"] + sys.argv[1:])
+    try:
+        subprocess.run(["dig"] + sys.argv[1:], timeout=10, check=True)
+    except subprocess.TimeoutExpired:
+        print("Error: dig command timed out")
+        tcpdump_proc.kill()
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        sys.exit(1)
+    except subprocess.CalledProcessError as e:
+        print(f"Error: dig command failed with exit code {e.returncode}")
+        tcpdump_proc.kill()
+        shutil.rmtree(temp_dir, ignore_errors=True)
+        sys.exit(1)
 
-    # Wait for packets to be captured
-    time.sleep(0.5)
+    # Wait for packets to be captured (increased for reliability)
+    time.sleep(1.0)
 
     # Stop tcpdump
     print("Stopping packet capture...")
     tcpdump_proc.send_signal(signal.SIGTERM)
-    tcpdump_proc.wait()
+    try:
+        tcpdump_proc.wait(timeout=5)
+    except subprocess.TimeoutExpired:
+        print("Warning: tcpdump did not stop gracefully, killing process")
+        tcpdump_proc.kill()
+        tcpdump_proc.wait()
 
     # Parse pcap file
     print("Extracting DNS payloads...")
@@ -165,7 +225,7 @@ def main():
 
     if not packets:
         print("Error: No DNS packets captured")
-        subprocess.run(["rm", "-rf", temp_dir])
+        shutil.rmtree(temp_dir, ignore_errors=True)
         sys.exit(1)
 
     # Find query and response
@@ -180,12 +240,12 @@ def main():
 
     if query_packet is None:
         print("Error: No query packet found")
-        subprocess.run(["rm", "-rf", temp_dir])
+        shutil.rmtree(temp_dir, ignore_errors=True)
         sys.exit(1)
 
     if response_packet is None:
         print("Error: No response packet found")
-        subprocess.run(["rm", "-rf", temp_dir])
+        shutil.rmtree(temp_dir, ignore_errors=True)
         sys.exit(1)
 
     # Write packets to files
@@ -196,7 +256,7 @@ def main():
         f.write(response_packet)
 
     # Cleanup
-    subprocess.run(["rm", "-rf", temp_dir])
+    shutil.rmtree(temp_dir, ignore_errors=True)
 
     # Display results
     print()
