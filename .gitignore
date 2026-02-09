@@ -9,3 +9,4 @@ DerivedData/
 /coverage
 /docs
 /.claude/settings.local.json
+__pycache__

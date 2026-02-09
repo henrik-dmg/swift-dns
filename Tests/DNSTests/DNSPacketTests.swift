@@ -18,7 +18,7 @@ struct DNSPacketTests {
     @Test("decodes query packet")
     func decodeQueryPacket() throws {
         let path = try #require(
-            Bundle.module.url(forResource: "query_packet", withExtension: "txt")
+            Bundle.module.url(forResource: "query-google.com-A", withExtension: nil)
         )
         let data = try Data(contentsOf: path)
         let decoder = DNSPacketDecoder()
@@ -36,7 +36,7 @@ struct DNSPacketTests {
     @Test("decodes response packet")
     func decodeResponsePacket() throws {
         let path = try #require(
-            Bundle.module.url(forResource: "response_packet", withExtension: "txt")
+            Bundle.module.url(forResource: "response-google.com-A", withExtension: nil)
         )
         let data = try Data(contentsOf: path)
         let decoder = DNSPacketDecoder()
@@ -53,23 +53,14 @@ struct DNSPacketTests {
         let firstRecord = try #require(packet.records.first as? ARecord)
         #expect(firstRecord.recordType == .a)
         #expect(firstRecord.labels.labels == ["google", "com"])
-        #expect(firstRecord.address.fragments == [216, 58, 215, 78])
+        #expect(firstRecord.address.fragments == [142, 251, 141, 46])
     }
 
     // MARK: - Encoding
 
-    @Test(
-        "encodes packet",
-        arguments: [
-            "query_packet", "query_packet_big", "query_packet_aaaa", "query_packet_mixed",
-            "query_packet_txt",
-            "response_packet", "response_packet_big", "response_packet_aaaa",
-            "response_packet_mixed",
-            "response_packet_txt",
-        ]
-    )
+    @Test("encodes packet", arguments: TestResourcesProvider.availableTestResources())
     func encodePacket(packetName: String) throws {
-        let path = try #require(Bundle.module.url(forResource: packetName, withExtension: "txt"))
+        let path = try #require(Bundle.module.url(forResource: packetName, withExtension: nil))
         let data = try Data(contentsOf: path)
         let decoder = DNSPacketDecoder()
         let packet = try decoder.decode(from: data)
@@ -78,12 +69,13 @@ struct DNSPacketTests {
         encoder.shouldCompressLabels = true
         let encodedPacket = try encoder.encode(packet: packet)
 
-        #expect(encodedPacket == data)
-        print(packet.records)
         if encodedPacket != data {
+            print(packet.records)
             print(data.hexEncodedString(options: .upperCase))
             print(encodedPacket.hexEncodedString(options: .upperCase))
         }
+
+        #expect(encodedPacket == data)
     }
 
     @Test("encodes custom package")
