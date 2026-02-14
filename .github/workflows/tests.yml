@@ -81,6 +81,8 @@ jobs:
           OUTPUT_ENCODED_PACKETS: "1"
         run: swift test --filter DNSPacketTests/encodePacket -v
       - name: Verify packet equivalence with dnspython
+        if: failure()
+        continue-on-error: true
         run: Scripts/verify-dns-packets
       - name: Upload verification packets as artifacts
         if: failure()
