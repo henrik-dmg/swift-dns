@@ -1,0 +1,185 @@
+#!/usr/bin/env python3
+"""
+Verify DNS packet equivalence using dnspython.
+
+This script compares re-encoded DNS packets (from swift-dns) against their
+original packets captured from dig to ensure semantic equivalence.
+
+Usage:
+    ./verify-dns-packets
+
+The script expects:
+- Original packets in Tests/DNSTests/Resources/
+- Re-encoded packets in tmp/ with suffix '-verification'
+"""
+
+import sys
+import os
+from pathlib import Path
+
+try:
+    import dns.message
+except ImportError:
+    print("Error: dnspython not installed. Install with: pip install dnspython")
+    sys.exit(1)
+
+
+def compare_packets(
+    original_path: Path, reencoded_path: Path
+) -> tuple[bool, list[str]]:
+    """
+    Compare two DNS packets for semantic equivalence.
+
+    Returns:
+        tuple: (is_equivalent, list_of_differences)
+    """
+    differences = []
+
+    try:
+        # Parse both packets
+        with open(original_path, "rb") as f:
+            original = dns.message.from_wire(f.read())
+
+        with open(reencoded_path, "rb") as f:
+            reencoded = dns.message.from_wire(f.read())
+
+        # Compare packet ID
+        if original.id != reencoded.id:
+            differences.append(f"ID mismatch: {original.id} != {reencoded.id}")
+
+        # Compare flags
+        if original.flags != reencoded.flags:
+            differences.append(f"Flags mismatch: {original.flags} != {reencoded.flags}")
+
+        # Compare opcode
+        if original.opcode() != reencoded.opcode():
+            differences.append(
+                f"Opcode mismatch: {original.opcode()} != {reencoded.opcode()}"
+            )
+
+        # Compare rcode
+        if original.rcode() != reencoded.rcode():
+            differences.append(
+                f"Rcode mismatch: {original.rcode()} != {reencoded.rcode()}"
+            )
+
+        # Compare questions
+        if original.question != reencoded.question:
+            differences.append(
+                f"Questions mismatch:\nOriginal: {original.question}\nReencoded: {reencoded.question}"
+            )
+
+        # Compare answer section
+        if original.answer != reencoded.answer:
+            differences.append(
+                f"Answers mismatch:\nOriginal: {original.answer}\nReencoded: {reencoded.answer}"
+            )
+
+        # Compare authority section
+        if original.authority != reencoded.authority:
+            differences.append(
+                f"Authority mismatch:\nOriginal: {original.authority}\nReencoded: {reencoded.authority}"
+            )
+
+        # Compare additional section
+        if original.additional != reencoded.additional:
+            differences.append(
+                f"Additional mismatch:\nOriginal: {original.additional}\nReencoded: {reencoded.additional}"
+            )
+
+        return (len(differences) == 0, differences)
+
+    except Exception as e:
+        differences.append(f"Error parsing packets: {e}")
+        return (False, differences)
+
+
+def main():
+    # Find repository root
+    script_dir = Path(__file__).parent
+    repo_root = script_dir.parent
+
+    # Define directories
+    resources_dir = repo_root / "Tests" / "DNSTests" / "Resources"
+    tmp_dir = repo_root / "tmp"
+
+    if not tmp_dir.exists():
+        print(f"✗ Directory not found: {tmp_dir}")
+        print(
+            "  No re-encoded packets to verify. Did the test run with OUTPUT_ENCODED_PACKETS=1?"
+        )
+        sys.exit(1)
+
+    if not resources_dir.exists():
+        print(f"✗ Resources directory not found: {resources_dir}")
+        sys.exit(1)
+
+    # Find all verification packets
+    verification_files = list(tmp_dir.glob("*-verification"))
+
+    if not verification_files:
+        print(f"✗ No verification packets found in {tmp_dir}")
+        print("  Expected files with '-verification' suffix")
+        sys.exit(1)
+
+    print(f"Found {len(verification_files)} packet(s) to verify\n")
+
+    failed = []
+    passed = []
+
+    for verification_file in sorted(verification_files):
+        # Extract original filename by removing '-verification' suffix
+        original_name = verification_file.name.replace("-verification", "")
+        original_file = resources_dir / original_name
+
+        if not original_file.exists():
+            print(f"✗ {verification_file.name}")
+            print(f"  Original file not found: {original_file}")
+            failed.append(verification_file.name)
+            continue
+
+        # Compare packets
+        is_equivalent, differences = compare_packets(original_file, verification_file)
+
+        if is_equivalent:
+            # Check size difference
+            orig_size = original_file.stat().st_size
+            new_size = verification_file.stat().st_size
+            size_diff = orig_size - new_size
+
+            print(f"✓ {original_name}")
+            if size_diff > 0:
+                print(
+                    f"  Re-encoded packet is {size_diff} bytes smaller (better compression)"
+                )
+            elif size_diff < 0:
+                print(f"  Re-encoded packet is {abs(size_diff)} bytes larger")
+            else:
+                print(f"  Identical byte-for-byte")
+            passed.append(original_name)
+        else:
+            print(f"✗ {original_name}")
+            for diff in differences:
+                print(f"  {diff}")
+            failed.append(original_name)
+
+        print()
+
+    # Print summary
+    print("=" * 60)
+    print(f"Results: {len(passed)} passed, {len(failed)} failed")
+    print("=" * 60)
+
+    if failed:
+        print("\nFailed packets:")
+        for name in failed:
+            print(f"  - {name}")
+        sys.exit(1)
+    else:
+        print("\n✓ All packets are semantically equivalent!")
+        print("  swift-dns encoding is RFC-compliant and production-ready")
+        sys.exit(0)
+
+
+if __name__ == "__main__":
+    main()

@@ -69,6 +69,21 @@ struct DNSPacketTests {
         encoder.shouldCompressLabels = true
         let encodedPacket = try encoder.encode(packet: packet)
 
+        // Write encoded packet to tmp/ directory if environment variable is set
+        if ProcessInfo.processInfo.environment["OUTPUT_ENCODED_PACKETS"] != nil {
+            let fileManager = FileManager.default
+            let currentDirectory = fileManager.currentDirectoryPath
+            let tmpDirectory = URL(fileURLWithPath: currentDirectory).appendingPathComponent("tmp")
+
+            // Create tmp directory if it doesn't exist
+            try fileManager.createDirectory(at: tmpDirectory, withIntermediateDirectories: true)
+
+            // Write the encoded packet with -verification suffix
+            let outputFileName = "\(packetName)-verification"
+            let outputPath = tmpDirectory.appendingPathComponent(outputFileName)
+            try encodedPacket.write(to: outputPath)
+        }
+
         if encodedPacket != data {
             print(packet.records)
             print(data.hexEncodedString(options: .upperCase))

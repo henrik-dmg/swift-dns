@@ -52,3 +52,39 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: henrik-dmg/swift-dns
           swift_project: swift-dns
+
+  verify-rfc-compliance:
+    name: RFC Compliance Verification
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: ".python-version"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+      - name: Install dnspython
+        run: uv pip install --system dnspython
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+      - name: Cache SPM dependencies
+        uses: actions/cache@v4
+        with:
+          path: .build
+          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-spm-
+      - name: Run encoding test with packet output
+        env:
+          OUTPUT_ENCODED_PACKETS: "1"
+        run: swift test --filter DNSPacketTests/encodePacket -v
+      - name: Verify packet equivalence with dnspython
+        run: Scripts/verify-dns-packets
+      - name: Upload verification packets as artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: verification-packets
+          path: tmp/
