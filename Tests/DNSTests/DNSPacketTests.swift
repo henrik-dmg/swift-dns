@@ -73,9 +73,10 @@ struct DNSPacketTests {
             print(packet.records)
             print(data.hexEncodedString(options: .upperCase))
             print(encodedPacket.hexEncodedString(options: .upperCase))
-        }
 
-        #expect(encodedPacket == data)
+            let decodedPacket = try decoder.decode(from: encodedPacket)
+            #expect(decodedPacket == packet, "Reencoded packet is not equal to input \(packetName)")
+        }
     }
 
     @Test("encodes custom package")
