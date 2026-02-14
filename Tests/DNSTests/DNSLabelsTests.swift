@@ -98,4 +98,27 @@ struct DNSLabelsTests {
         #expect(nextByte == 0xBB)
     }
 
+    // MARK: - Uncompressed Byte Length
+
+    @Test("computes uncompressed byte length for single label")
+    func uncompressedByteLengthSingleLabel() {
+        let labels = DNSLabels(labels: ["com"])
+        // 1 (length prefix) + 3 ("com") + 1 (null terminator) = 5
+        #expect(labels.uncompressedByteLength == 5)
+    }
+
+    @Test("computes uncompressed byte length for multi-label domain")
+    func uncompressedByteLengthMultiLabel() {
+        let labels = DNSLabels(labels: ["www", "example", "com"])
+        // (1+3) + (1+7) + (1+3) + 1 = 17
+        #expect(labels.uncompressedByteLength == 17)
+    }
+
+    @Test("computes uncompressed byte length for two-label domain")
+    func uncompressedByteLengthTwoLabels() {
+        let labels = DNSLabels(labels: ["google", "com"])
+        // (1+6) + (1+3) + 1 = 12
+        #expect(labels.uncompressedByteLength == 12)
+    }
+
 }

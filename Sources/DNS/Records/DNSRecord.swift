@@ -42,23 +42,24 @@ extension DNSRecord {
 
     /// Encodes the complete DNS record into the provided buffer.
     ///
-    /// This includes both the common fields and the record-specific data.
+    /// This includes the common fields and the record-specific data. The RDATA length field is
+    /// computed dynamically to account for label compression potentially changing the encoded size.
     func encode(into buffer: inout ByteBufferWriting) throws {
-        try encodeSharedValues(into: &buffer)
-        if let encodable = self as? DNSRecordEncodable {
-            try encodable.encodeAdditionalData(into: &buffer)
-        }
-    }
-
-    /// Encodes the common fields shared by all DNS records.
-    ///
-    /// This includes the domain name, record type, class, TTL, and data length.
-    func encodeSharedValues(into buffer: inout ByteBufferWriting) throws {
         try buffer.write(labels)
         try recordType.encode(into: &buffer)
         buffer.write(recordClass)
         buffer.write(timeToLive)
-        buffer.write(lengthOfCustomData)
+
+        if let encodable = self as? DNSRecordEncodable {
+            let lengthIndex = buffer.currentIndex
+            buffer.write(UInt16(0))
+            let rdataStart = buffer.currentIndex
+            try encodable.encodeAdditionalData(into: &buffer)
+            let rdataLength = buffer.currentIndex - rdataStart
+            buffer.write(UInt16(rdataLength), at: lengthIndex)
+        } else {
+            buffer.write(lengthOfCustomData)
+        }
     }
 
 }
@@ -154,10 +155,13 @@ public struct NSRecord: DNSRecord, DNSRecordEncodable {
     public let recordType: DNSRecordType
     public let recordClass: UInt16
     public let timeToLive: UInt32
-    public let lengthOfCustomData: UInt16
 
     /// The domain name of the name server.
     public let payloadLabels: DNSLabels
+
+    public var lengthOfCustomData: UInt16 {
+        UInt16(payloadLabels.uncompressedByteLength)
+    }
 
     func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws(EncoderError) {
         try buffer.write(payloadLabels)
@@ -176,10 +180,13 @@ public struct CNAMERecord: DNSRecord, DNSRecordEncodable {
     public let recordType: DNSRecordType
     public let recordClass: UInt16
     public let timeToLive: UInt32
-    public let lengthOfCustomData: UInt16
 
     /// The canonical domain name that the alias points to.
     public let payloadLabels: DNSLabels
+
+    public var lengthOfCustomData: UInt16 {
+        UInt16(payloadLabels.uncompressedByteLength)
+    }
 
     func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws(EncoderError) {
         try buffer.write(payloadLabels)
@@ -198,7 +205,6 @@ public struct MXRecord: DNSRecord, DNSRecordEncodable {
     public let recordType: DNSRecordType
     public let recordClass: UInt16
     public let timeToLive: UInt32
-    public let lengthOfCustomData: UInt16
 
     /// The priority of the mail server.
     ///
@@ -207,6 +213,10 @@ public struct MXRecord: DNSRecord, DNSRecordEncodable {
 
     /// The domain name of the mail server.
     public let payloadLabels: DNSLabels
+
+    public var lengthOfCustomData: UInt16 {
+        UInt16(2 + payloadLabels.uncompressedByteLength)  // 2 bytes for priority
+    }
 
     func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws(EncoderError) {
         buffer.write(priority)
@@ -227,7 +237,6 @@ public struct SOARecord: DNSRecord, DNSRecordEncodable {
     public let recordType: DNSRecordType
     public let recordClass: UInt16
     public let timeToLive: UInt32
-    public let lengthOfCustomData: UInt16
 
     /// The domain name of the primary name server for this zone.
     public let primaryNameServer: DNSLabels
@@ -254,6 +263,11 @@ public struct SOARecord: DNSRecord, DNSRecordEncodable {
 
     /// The minimum TTL field that should be exported with any RR from this zone.
     public let minimum: UInt32
+
+    public var lengthOfCustomData: UInt16 {
+        // MNAME + RNAME (uncompressed) + 5 x UInt32 (20 bytes)
+        UInt16(primaryNameServer.uncompressedByteLength + responsibleMailbox.uncompressedByteLength + 20)
+    }
 
     func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws(EncoderError) {
         try buffer.write(primaryNameServer)

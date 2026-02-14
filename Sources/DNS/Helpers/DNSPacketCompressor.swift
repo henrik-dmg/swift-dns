@@ -56,6 +56,12 @@ struct DNSPacketCompressor: ByteBufferWriting {
     /// - Parameter data: The data to write.
     mutating func write(_ data: Data) { byteBuffer.write(data) }
 
+    /// Writes a 16-bit unsigned integer at a specific index in the byte buffer.
+    /// - Parameters:
+    ///   - value: The value to write.
+    ///   - index: The byte offset at which to write the value.
+    mutating func write(_ value: UInt16, at index: Data.Index) { byteBuffer.write(value, at: index) }
+
     // MARK: - Label Compression
 
     /// Writes DNS labels to the byte buffer, using compression if possible.

@@ -65,7 +65,6 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
-                lengthOfCustomData: UInt16(lengthOfCustomData),
                 payloadLabels: payloadLabels
             )
         case .cname:
@@ -85,7 +84,6 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
-                lengthOfCustomData: UInt16(lengthOfCustomData),
                 payloadLabels: payloadLabels
             )
         case .mx:
@@ -106,7 +104,6 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
-                lengthOfCustomData: UInt16(lengthOfCustomData),
                 priority: priority,
                 payloadLabels: payloadLabels
             )
@@ -133,7 +130,6 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
-                lengthOfCustomData: UInt16(lengthOfCustomData),
                 primaryNameServer: primaryNameServer,
                 responsibleMailbox: responsibleMailbox,
                 serial: serial,

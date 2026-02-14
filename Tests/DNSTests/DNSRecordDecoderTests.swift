@@ -363,7 +363,6 @@ struct DNSRecordDecoderTests {
             recordType: .soa,
             recordClass: 1,
             timeToLive: 3600,
-            lengthOfCustomData: 56,
             primaryNameServer: DNSLabels(labels: ["ns1", "example", "com"]),
             responsibleMailbox: DNSLabels(labels: ["admin", "example", "com"]),
             serial: 2_024_010_101,
@@ -525,6 +524,201 @@ struct DNSRecordDecoderTests {
         #expect(throws: DecoderError.self) {
             try DNSRecordDecoder.decode(from: &buffer)
         }
+    }
+
+    // MARK: - Computed lengthOfCustomData
+
+    @Test("SOA record computes lengthOfCustomData from its fields")
+    func soaRecordComputesLength() {
+        let record = SOARecord(
+            labels: DNSLabels(labels: ["example", "com"]),
+            recordType: .soa,
+            recordClass: 1,
+            timeToLive: 3600,
+            primaryNameServer: DNSLabels(labels: ["ns1", "example", "com"]),
+            responsibleMailbox: DNSLabels(labels: ["admin", "example", "com"]),
+            serial: 1,
+            refresh: 2,
+            retry: 3,
+            expire: 4,
+            minimum: 5
+        )
+
+        // MNAME "ns1.example.com": (1+3) + (1+7) + (1+3) + 1 = 17
+        // RNAME "admin.example.com": (1+5) + (1+7) + (1+3) + 1 = 19
+        // 5 x UInt32 = 20
+        // Total = 56
+        #expect(record.lengthOfCustomData == 56)
+    }
+
+    @Test("NS record computes lengthOfCustomData from payload labels")
+    func nsRecordComputesLength() {
+        let record = NSRecord(
+            labels: DNSLabels(labels: ["example", "com"]),
+            recordType: .ns,
+            recordClass: 1,
+            timeToLive: 300,
+            payloadLabels: DNSLabels(labels: ["ns1", "example", "com"])
+        )
+
+        // "ns1.example.com": (1+3) + (1+7) + (1+3) + 1 = 17
+        #expect(record.lengthOfCustomData == 17)
+    }
+
+    @Test("CNAME record computes lengthOfCustomData from payload labels")
+    func cnameRecordComputesLength() {
+        let record = CNAMERecord(
+            labels: DNSLabels(labels: ["www", "example", "com"]),
+            recordType: .cname,
+            recordClass: 1,
+            timeToLive: 600,
+            payloadLabels: DNSLabels(labels: ["example", "com"])
+        )
+
+        // "example.com": (1+7) + (1+3) + 1 = 13
+        #expect(record.lengthOfCustomData == 13)
+    }
+
+    @Test("MX record computes lengthOfCustomData from priority and payload labels")
+    func mxRecordComputesLength() {
+        let record = MXRecord(
+            labels: DNSLabels(labels: ["example", "com"]),
+            recordType: .mx,
+            recordClass: 1,
+            timeToLive: 3600,
+            priority: 10,
+            payloadLabels: DNSLabels(labels: ["mail", "example", "com"])
+        )
+
+        // 2 (priority) + "mail.example.com": (1+4) + (1+7) + (1+3) + 1 = 2 + 18 = 20
+        #expect(record.lengthOfCustomData == 20)
+    }
+
+    @Test("SOA record equality ignores wire format differences in lengthOfCustomData")
+    func soaRecordEqualityAfterCompression() throws {
+        // Build a packet with an SOA record whose MNAME and RNAME share a suffix
+        let query = DNSQuery(labels: ["panhans", "dev"], recordType: .soa, recordClass: 1)
+        let soaRecord = SOARecord(
+            labels: DNSLabels(labels: ["panhans", "dev"]),
+            recordType: .soa,
+            recordClass: 1,
+            timeToLive: 141,
+            primaryNameServer: DNSLabels(labels: ["docks17", "rzone", "de"]),
+            responsibleMailbox: DNSLabels(labels: ["hostmaster", "strato-rz", "de"]),
+            serial: 2_023_062_341,
+            refresh: 86400,
+            retry: 7200,
+            expire: 604_800,
+            minimum: 300
+        )
+
+        let packet = try DNSPacket(
+            id: 30738,
+            isResponse: true,
+            isRecursionDesired: true,
+            isRecursionAvailable: true,
+            queries: [query],
+            records: [soaRecord]
+        )
+
+        // Encode with compression (which will compress ".de" suffix in RNAME)
+        var encoder = DNSPacketEncoder()
+        encoder.shouldCompressLabels = true
+        let compressedData = try encoder.encode(packet: packet)
+
+        // Decode the compressed packet
+        let decoder = DNSPacketDecoder()
+        let decodedPacket = try decoder.decode(from: compressedData)
+
+        // Packets should be semantically equal
+        #expect(decodedPacket == packet)
+
+        // Verify the SOA records are equal
+        let decodedSOA = try #require(decodedPacket.records.first as? SOARecord)
+        #expect(decodedSOA == soaRecord)
+    }
+
+    @Test("SOA record round-trips through compressed encoding and decoding")
+    func soaRecordCompressedRoundTrip() throws {
+        let soaRecord = SOARecord(
+            labels: DNSLabels(labels: ["example", "com"]),
+            recordType: .soa,
+            recordClass: 1,
+            timeToLive: 3600,
+            primaryNameServer: DNSLabels(labels: ["ns1", "example", "com"]),
+            responsibleMailbox: DNSLabels(labels: ["admin", "example", "com"]),
+            serial: 2_024_010_101,
+            refresh: 7200,
+            retry: 3600,
+            expire: 1_209_600,
+            minimum: 86400
+        )
+
+        let packet = try DNSPacket(
+            id: 1234,
+            isResponse: true,
+            isRecursionDesired: true,
+            queries: [DNSQuery(labels: ["example", "com"], recordType: .soa, recordClass: 1)],
+            records: [soaRecord]
+        )
+
+        // Encode with compression
+        var encoder = DNSPacketEncoder()
+        encoder.shouldCompressLabels = true
+        let compressedData = try encoder.encode(packet: packet)
+
+        // Decode
+        let decoder = DNSPacketDecoder()
+        let decodedPacket = try decoder.decode(from: compressedData)
+
+        // Re-encode
+        let reEncodedData = try encoder.encode(packet: decodedPacket)
+
+        // Should produce identical bytes (idempotent)
+        #expect(compressedData == reEncodedData)
+
+        // And decoded packets should be equal
+        #expect(decodedPacket == packet)
+    }
+
+    @Test("SOA record encodes correct RDATA length with shared suffix compression")
+    func soaRecordRDATALengthWithCompression() throws {
+        // Create an SOA where MNAME and RNAME share the ".de" suffix
+        let soaRecord = SOARecord(
+            labels: DNSLabels(labels: ["test", "de"]),
+            recordType: .soa,
+            recordClass: 1,
+            timeToLive: 300,
+            primaryNameServer: DNSLabels(labels: ["ns1", "provider", "de"]),
+            responsibleMailbox: DNSLabels(labels: ["admin", "provider", "de"]),
+            serial: 1,
+            refresh: 3600,
+            retry: 900,
+            expire: 86400,
+            minimum: 300
+        )
+
+        let packet = try DNSPacket(
+            id: 1,
+            isResponse: true,
+            isRecursionDesired: true,
+            queries: [DNSQuery(labels: ["test", "de"], recordType: .soa, recordClass: 1)],
+            records: [soaRecord]
+        )
+
+        // Encode with compression
+        var encoder = DNSPacketEncoder()
+        encoder.shouldCompressLabels = true
+        let data = try encoder.encode(packet: packet)
+
+        // Decode should succeed (RDATA length should match actual encoded data)
+        let decoder = DNSPacketDecoder()
+        let decoded = try decoder.decode(from: data)
+
+        let decodedSOA = try #require(decoded.records.first as? SOARecord)
+        #expect(decodedSOA.primaryNameServer.labels == ["ns1", "provider", "de"])
+        #expect(decodedSOA.responsibleMailbox.labels == ["admin", "provider", "de"])
+        #expect(decodedSOA.serial == 1)
     }
 
     @Test("decodes SOA record with compression pointers")

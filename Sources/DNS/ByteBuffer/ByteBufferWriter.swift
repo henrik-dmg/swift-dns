@@ -16,6 +16,7 @@ protocol ByteBufferWriting: ByteBuffer {
     mutating func write(_ bytes: [UInt8])
     mutating func write(_ data: Data)
     mutating func write(_ labels: DNSLabels) throws(EncoderError)
+    mutating func write(_ value: UInt16, at index: Data.Index)
 
 }
 
@@ -73,6 +74,11 @@ struct ByteBufferWriter: ByteBufferWriting {
         }
         // Write single zero to signal termination of label sequence
         write(UInt8(0))
+    }
+
+    mutating func write(_ value: UInt16, at index: Data.Index) {
+        data[index] = UInt8(value >> 8)
+        data[index + 1] = UInt8(value & 0xFF)
     }
 
     mutating func write(_ label: String) throws(EncoderError) {

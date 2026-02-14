@@ -31,6 +31,14 @@ public struct DNSLabels: Equatable, Sendable {
     /// Each string represents a component of the domain name in order from left to right.
     public let labels: [String]
 
+    /// The byte length of this domain name when encoded without compression.
+    ///
+    /// Each label contributes 1 byte (length prefix) + the label's character count,
+    /// plus a final null terminator byte.
+    public var uncompressedByteLength: Int {
+        labels.reduce(1) { $0 + 1 + $1.count }
+    }
+
 }
 
 // MARK: - Decoding
