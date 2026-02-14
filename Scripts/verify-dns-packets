@@ -14,7 +14,6 @@ The script expects:
 """
 
 import sys
-import os
 from pathlib import Path
 
 try:
