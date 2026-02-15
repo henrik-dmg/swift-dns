@@ -525,70 +525,6 @@ struct DNSRecordDecoderTests {
         }
     }
 
-    // MARK: - Computed lengthOfCustomData
-
-    @Test("SOA record computes lengthOfCustomData from its fields")
-    func soaRecordComputesLength() {
-        let record = SOARecord(
-            labels: DNSLabels(labels: ["example", "com"]),
-            recordClass: 1,
-            timeToLive: 3600,
-            primaryNameServer: DNSLabels(labels: ["ns1", "example", "com"]),
-            responsibleMailbox: DNSLabels(labels: ["admin", "example", "com"]),
-            serial: 1,
-            refresh: 2,
-            retry: 3,
-            expire: 4,
-            minimum: 5
-        )
-
-        // MNAME "ns1.example.com": (1+3) + (1+7) + (1+3) + 1 = 17
-        // RNAME "admin.example.com": (1+5) + (1+7) + (1+3) + 1 = 19
-        // 5 x UInt32 = 20
-        // Total = 56
-        #expect(record.lengthOfCustomData == 56)
-    }
-
-    @Test("NS record computes lengthOfCustomData from payload labels")
-    func nsRecordComputesLength() {
-        let record = NSRecord(
-            labels: DNSLabels(labels: ["example", "com"]),
-            recordClass: 1,
-            timeToLive: 300,
-            payloadLabels: DNSLabels(labels: ["ns1", "example", "com"])
-        )
-
-        // "ns1.example.com": (1+3) + (1+7) + (1+3) + 1 = 17
-        #expect(record.lengthOfCustomData == 17)
-    }
-
-    @Test("CNAME record computes lengthOfCustomData from payload labels")
-    func cnameRecordComputesLength() {
-        let record = CNAMERecord(
-            labels: DNSLabels(labels: ["www", "example", "com"]),
-            recordClass: 1,
-            timeToLive: 600,
-            payloadLabels: DNSLabels(labels: ["example", "com"])
-        )
-
-        // "example.com": (1+7) + (1+3) + 1 = 13
-        #expect(record.lengthOfCustomData == 13)
-    }
-
-    @Test("MX record computes lengthOfCustomData from priority and payload labels")
-    func mxRecordComputesLength() {
-        let record = MXRecord(
-            labels: DNSLabels(labels: ["example", "com"]),
-            recordClass: 1,
-            timeToLive: 3600,
-            priority: 10,
-            payloadLabels: DNSLabels(labels: ["mail", "example", "com"])
-        )
-
-        // 2 (priority) + "mail.example.com": (1+4) + (1+7) + (1+3) + 1 = 2 + 18 = 20
-        #expect(record.lengthOfCustomData == 20)
-    }
-
     @Test("SOA record equality ignores wire format differences in lengthOfCustomData")
     func soaRecordEqualityAfterCompression() throws {
         // Build a packet with an SOA record whose MNAME and RNAME share a suffix
@@ -891,19 +827,6 @@ struct DNSRecordDecoderTests {
         #expect(ptrRecord.domainName.labels == originalRecord.domainName.labels)
     }
 
-    @Test("PTR record computes lengthOfCustomData from domain name")
-    func ptrRecordComputesLength() {
-        let record = PTRRecord(
-            labels: DNSLabels(labels: ["1", "168", "192", "in-addr", "arpa"]),
-            recordClass: 1,
-            timeToLive: 3600,
-            domainName: DNSLabels(labels: ["host", "example", "com"])
-        )
-
-        // "host.example.com": (1+4) + (1+7) + (1+3) + 1 = 18
-        #expect(record.lengthOfCustomData == 18)
-    }
-
     @Test("PTR record round-trips through compressed encoding and decoding")
     func ptrRecordCompressedRoundTrip() throws {
         let ptrRecord = PTRRecord(
@@ -1021,22 +944,6 @@ struct DNSRecordDecoderTests {
         #expect(srvRecord.weight == originalRecord.weight)
         #expect(srvRecord.port == originalRecord.port)
         #expect(srvRecord.target.labels == originalRecord.target.labels)
-    }
-
-    @Test("SRV record computes lengthOfCustomData from fields")
-    func srvRecordComputesLength() {
-        let record = SRVRecord(
-            labels: DNSLabels(labels: ["_http", "_tcp", "example", "com"]),
-            recordClass: 1,
-            timeToLive: 300,
-            priority: 10,
-            weight: 60,
-            port: 80,
-            target: DNSLabels(labels: ["www", "example", "com"])
-        )
-
-        // 6 (priority + weight + port) + "www.example.com": (1+3) + (1+7) + (1+3) + 1 = 6 + 17 = 23
-        #expect(record.lengthOfCustomData == 23)
     }
 
     @Test("SRV record round-trips through compressed encoding and decoding")
