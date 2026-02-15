@@ -28,7 +28,11 @@ public struct DNSQuery: Equatable {
     /// For Internet DNS, this is typically IN (Internet) = 1.
     public let recordClass: UInt16
 
-    // MARK: - Init
+}
+
+// MARK: - Init
+
+extension DNSQuery {
 
     /// Creates a new DNS query with the specified parameters.
     ///
@@ -36,18 +40,8 @@ public struct DNSQuery: Equatable {
     ///   - labels: An array of strings representing the domain name labels
     ///   - recordType: The type of DNS record being requested
     ///   - recordClass: The class of the record (typically 1 for Internet)
-    public init(labels: [String], recordType: DNSRecordType, recordClass: UInt16) {
-        self.init(labels: DNSLabels(labels: labels), recordType: recordType, recordClass: recordClass)
-    }
-
-    /// Internal initializer that creates a DNS query with pre-constructed DNS labels.
-    ///
-    /// - Parameters:
-    ///   - labels: The DNS labels representing the domain name
-    ///   - recordType: The type of DNS record being requested
-    ///   - recordClass: The class of the record (typically 1 for Internet)
-    init(labels: DNSLabels, recordType: DNSRecordType, recordClass: UInt16) {
-        self.labels = labels
+    public init(labels: [String], recordType: DNSRecordType, recordClass: UInt16 = 1) {
+        self.labels = DNSLabels(labels: labels)
         self.recordType = recordType
         self.recordClass = recordClass
     }

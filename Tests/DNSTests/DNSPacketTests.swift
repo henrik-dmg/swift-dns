@@ -102,21 +102,18 @@ struct DNSPacketTests {
 
         let dnsRecord1 = ARecord(
             labels: DNSLabels(labels: ["mail", "google", "com"]),
-            recordType: .a,
             recordClass: 1,
             timeToLive: 100,
             address: IPv4Address(192, 168, 178, 1)
         )
         let dnsRecord2 = ARecord(
             labels: DNSLabels(labels: ["google", "com"]),
-            recordType: .a,
             recordClass: 1,
             timeToLive: 100,
             address: IPv4Address(192, 168, 178, 2)
         )
         let dnsRecord3 = ARecord(
             labels: DNSLabels(labels: ["panhans", "dev"]),
-            recordType: .a,
             recordClass: 1,
             timeToLive: 100,
             address: IPv4Address(192, 168, 178, 3)
@@ -161,7 +158,6 @@ struct DNSPacketTests {
 
         let dnsRecord1 = ARecord(
             labels: DNSLabels(labels: ["mail", "google", "com"]),
-            recordType: .a,
             recordClass: 1,
             timeToLive: 100,
             address: IPv4Address(192, 168, 178, 1)
@@ -189,14 +185,12 @@ struct DNSPacketTests {
     func packetsAreNotEqual() throws {
         let dnsRecord1 = ARecord(
             labels: DNSLabels(labels: ["mail", "google", "com"]),
-            recordType: .a,
             recordClass: 1,
             timeToLive: 100,
             address: IPv4Address(192, 168, 178, 1)
         )
         let dnsRecord2 = ARecord(
             labels: DNSLabels(labels: ["google", "com"]),
-            recordType: .a,
             recordClass: 1,
             timeToLive: 100,
             address: IPv4Address(192, 168, 178, 2)
@@ -247,7 +241,6 @@ struct DNSPacketTests {
         let records: [any DNSRecord] = [
             ARecord(
                 labels: DNSLabels(labels: ["example", "com"]),
-                recordType: .a,
                 recordClass: 1,
                 timeToLive: 300,
                 address: IPv4Address(93, 184, 216, 34)
@@ -312,7 +305,6 @@ struct DNSPacketTests {
 
         let answerRecord = ARecord(
             labels: DNSLabels(labels: ["example", "com"]),
-            recordType: .a,
             recordClass: 1,
             timeToLive: 300,
             address: IPv4Address(93, 184, 216, 34)
@@ -365,7 +357,6 @@ struct DNSPacketTests {
         let query = DNSQuery(labels: ["example", "com"], recordType: .a, recordClass: 1)
         let record = ARecord(
             labels: DNSLabels(labels: ["example", "com"]),
-            recordType: .a,
             recordClass: 1,
             timeToLive: 300,
             address: IPv4Address(93, 184, 216, 34)
@@ -399,7 +390,6 @@ struct DNSPacketTests {
 
         let record = ARecord(
             labels: DNSLabels(labels: ["example", "com"]),
-            recordType: .a,
             recordClass: 1,
             timeToLive: 60,
             address: IPv4Address(10, 0, 0, 1)

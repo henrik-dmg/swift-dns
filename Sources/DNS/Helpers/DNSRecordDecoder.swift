@@ -30,7 +30,6 @@ extension DNSRecordDecoder: DNSPacketDecodable {
             let fragments = try byteBuffer.readBytes(lengthOfCustomData)
             return ARecord(
                 labels: labels,
-                recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
                 address: IPv4Address(fragments: Array(fragments))
@@ -43,7 +42,6 @@ extension DNSRecordDecoder: DNSPacketDecodable {
             let fragments = try byteBuffer.readBytes(lengthOfCustomData)
             return AAAARecord(
                 labels: labels,
-                recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
                 address: try IPv6Address(fragments: Array(fragments))
@@ -62,7 +60,6 @@ extension DNSRecordDecoder: DNSPacketDecodable {
             byteBuffer.currentIndex = rdataStartIndex + lengthOfCustomData
             return NSRecord(
                 labels: labels,
-                recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
                 payloadLabels: payloadLabels
@@ -81,7 +78,6 @@ extension DNSRecordDecoder: DNSPacketDecodable {
             byteBuffer.currentIndex = rdataStartIndex + lengthOfCustomData
             return CNAMERecord(
                 labels: labels,
-                recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
                 payloadLabels: payloadLabels
@@ -101,7 +97,6 @@ extension DNSRecordDecoder: DNSPacketDecodable {
             byteBuffer.currentIndex = rdataStartIndex + lengthOfCustomData
             return MXRecord(
                 labels: labels,
-                recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
                 priority: priority,
@@ -127,7 +122,6 @@ extension DNSRecordDecoder: DNSPacketDecodable {
             byteBuffer.currentIndex = rdataStartIndex + lengthOfCustomData
             return SOARecord(
                 labels: labels,
-                recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
                 primaryNameServer: primaryNameServer,
@@ -149,7 +143,6 @@ extension DNSRecordDecoder: DNSPacketDecodable {
 
             return TXTRecord(
                 labels: labels,
-                recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
                 content: content
@@ -168,7 +161,6 @@ extension DNSRecordDecoder: DNSPacketDecodable {
             byteBuffer.currentIndex = rdataStartIndex + lengthOfCustomData
             return PTRRecord(
                 labels: labels,
-                recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
                 domainName: domainName
@@ -190,7 +182,6 @@ extension DNSRecordDecoder: DNSPacketDecodable {
             byteBuffer.currentIndex = rdataStartIndex + lengthOfCustomData
             return SRVRecord(
                 labels: labels,
-                recordType: recordType,
                 recordClass: recordClass,
                 timeToLive: timeToLive,
                 priority: priority,

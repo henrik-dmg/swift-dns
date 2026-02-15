@@ -39,6 +39,16 @@ public struct DNSLabels: Equatable, Sendable {
         labels.reduce(1) { $0 + 1 + $1.count }
     }
 
+    // MARK: - Init
+
+    /// Creates a new ``DNSLabels`` instance from an array of string labels.
+    ///
+    /// - Parameter labels: An array of strings representing the domain name components
+    ///   (e.g., `["www", "example", "com"]` for `www.example.com`).
+    public init(labels: [String]) {
+        self.labels = labels
+    }
+
 }
 
 // MARK: - Decoding

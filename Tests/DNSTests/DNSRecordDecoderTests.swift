@@ -360,7 +360,6 @@ struct DNSRecordDecoderTests {
         // Create an SOA record
         let originalRecord = SOARecord(
             labels: DNSLabels(labels: ["example", "com"]),
-            recordType: .soa,
             recordClass: 1,
             timeToLive: 3600,
             primaryNameServer: DNSLabels(labels: ["ns1", "example", "com"]),
@@ -532,7 +531,6 @@ struct DNSRecordDecoderTests {
     func soaRecordComputesLength() {
         let record = SOARecord(
             labels: DNSLabels(labels: ["example", "com"]),
-            recordType: .soa,
             recordClass: 1,
             timeToLive: 3600,
             primaryNameServer: DNSLabels(labels: ["ns1", "example", "com"]),
@@ -555,7 +553,6 @@ struct DNSRecordDecoderTests {
     func nsRecordComputesLength() {
         let record = NSRecord(
             labels: DNSLabels(labels: ["example", "com"]),
-            recordType: .ns,
             recordClass: 1,
             timeToLive: 300,
             payloadLabels: DNSLabels(labels: ["ns1", "example", "com"])
@@ -569,7 +566,6 @@ struct DNSRecordDecoderTests {
     func cnameRecordComputesLength() {
         let record = CNAMERecord(
             labels: DNSLabels(labels: ["www", "example", "com"]),
-            recordType: .cname,
             recordClass: 1,
             timeToLive: 600,
             payloadLabels: DNSLabels(labels: ["example", "com"])
@@ -583,7 +579,6 @@ struct DNSRecordDecoderTests {
     func mxRecordComputesLength() {
         let record = MXRecord(
             labels: DNSLabels(labels: ["example", "com"]),
-            recordType: .mx,
             recordClass: 1,
             timeToLive: 3600,
             priority: 10,
@@ -600,7 +595,6 @@ struct DNSRecordDecoderTests {
         let query = DNSQuery(labels: ["panhans", "dev"], recordType: .soa, recordClass: 1)
         let soaRecord = SOARecord(
             labels: DNSLabels(labels: ["panhans", "dev"]),
-            recordType: .soa,
             recordClass: 1,
             timeToLive: 141,
             primaryNameServer: DNSLabels(labels: ["docks17", "rzone", "de"]),
@@ -642,7 +636,6 @@ struct DNSRecordDecoderTests {
     func soaRecordCompressedRoundTrip() throws {
         let soaRecord = SOARecord(
             labels: DNSLabels(labels: ["example", "com"]),
-            recordType: .soa,
             recordClass: 1,
             timeToLive: 3600,
             primaryNameServer: DNSLabels(labels: ["ns1", "example", "com"]),
@@ -686,7 +679,6 @@ struct DNSRecordDecoderTests {
         // Create an SOA where MNAME and RNAME share the ".de" suffix
         let soaRecord = SOARecord(
             labels: DNSLabels(labels: ["test", "de"]),
-            recordType: .soa,
             recordClass: 1,
             timeToLive: 300,
             primaryNameServer: DNSLabels(labels: ["ns1", "provider", "de"]),
@@ -878,7 +870,6 @@ struct DNSRecordDecoderTests {
     func encodeDecodePTRRecordRoundTrip() throws {
         let originalRecord = PTRRecord(
             labels: DNSLabels(labels: ["1", "168", "192", "in-addr", "arpa"]),
-            recordType: .ptr,
             recordClass: 1,
             timeToLive: 3600,
             domainName: DNSLabels(labels: ["host", "example", "com"])
@@ -904,7 +895,6 @@ struct DNSRecordDecoderTests {
     func ptrRecordComputesLength() {
         let record = PTRRecord(
             labels: DNSLabels(labels: ["1", "168", "192", "in-addr", "arpa"]),
-            recordType: .ptr,
             recordClass: 1,
             timeToLive: 3600,
             domainName: DNSLabels(labels: ["host", "example", "com"])
@@ -918,7 +908,6 @@ struct DNSRecordDecoderTests {
     func ptrRecordCompressedRoundTrip() throws {
         let ptrRecord = PTRRecord(
             labels: DNSLabels(labels: ["1", "168", "192", "in-addr", "arpa"]),
-            recordType: .ptr,
             recordClass: 1,
             timeToLive: 3600,
             domainName: DNSLabels(labels: ["host", "example", "com"])
@@ -1007,7 +996,6 @@ struct DNSRecordDecoderTests {
     func encodeDecodeSRVRecordRoundTrip() throws {
         let originalRecord = SRVRecord(
             labels: DNSLabels(labels: ["_http", "_tcp", "example", "com"]),
-            recordType: .srv,
             recordClass: 1,
             timeToLive: 300,
             priority: 10,
@@ -1039,7 +1027,6 @@ struct DNSRecordDecoderTests {
     func srvRecordComputesLength() {
         let record = SRVRecord(
             labels: DNSLabels(labels: ["_http", "_tcp", "example", "com"]),
-            recordType: .srv,
             recordClass: 1,
             timeToLive: 300,
             priority: 10,
@@ -1056,7 +1043,6 @@ struct DNSRecordDecoderTests {
     func srvRecordCompressedRoundTrip() throws {
         let srvRecord = SRVRecord(
             labels: DNSLabels(labels: ["_http", "_tcp", "example", "com"]),
-            recordType: .srv,
             recordClass: 1,
             timeToLive: 300,
             priority: 10,

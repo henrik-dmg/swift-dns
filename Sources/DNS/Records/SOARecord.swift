@@ -9,10 +9,24 @@
 ///
 /// SOA records contain administrative information about the zone including the primary name server,
 /// the email of the domain administrator, and various timers for zone transfers.
+///
+/// ```swift
+/// let record = SOARecord(
+///     labels: ["example", "com"],
+///     timeToLive: 3600,
+///     primaryNameServer: ["ns1", "example", "com"],
+///     responsibleMailbox: ["admin", "example", "com"],
+///     serial: 2024010101,
+///     refresh: 7200,
+///     retry: 3600,
+///     expire: 1209600,
+///     minimum: 86400
+/// )
+/// ```
 public struct SOARecord: DNSRecord, DNSRecordEncodable {
 
     public let labels: DNSLabels
-    public let recordType: DNSRecordType
+    public let recordType: DNSRecordType = .soa
     public let recordClass: UInt16
     public let timeToLive: UInt32
 
@@ -47,6 +61,8 @@ public struct SOARecord: DNSRecord, DNSRecordEncodable {
         UInt16(primaryNameServer.uncompressedByteLength + responsibleMailbox.uncompressedByteLength + 20)
     }
 
+    // MARK: - Encoding
+
     func encodeAdditionalData(into buffer: inout ByteBufferWriting) throws(EncoderError) {
         try buffer.write(primaryNameServer)
         try buffer.write(responsibleMailbox)
@@ -55,6 +71,50 @@ public struct SOARecord: DNSRecord, DNSRecordEncodable {
         buffer.write(retry)
         buffer.write(expire)
         buffer.write(minimum)
+    }
+
+}
+
+// MARK: - Init
+
+extension SOARecord {
+
+    /// Creates a new SOA record.
+    ///
+    /// - Parameters:
+    ///   - labels: The domain name labels (e.g., `["example", "com"]`).
+    ///   - recordClass: The record class. Defaults to `1` (Internet).
+    ///   - timeToLive: The time in seconds that this record may be cached.
+    ///   - primaryNameServer: The primary name server's domain name labels.
+    ///   - responsibleMailbox: The responsible person's mailbox as domain name labels
+    ///     (e.g., `["admin", "example", "com"]` for `admin@example.com`).
+    ///   - serial: The zone's serial number.
+    ///   - refresh: The refresh interval in seconds.
+    ///   - retry: The retry interval in seconds.
+    ///   - expire: The expire interval in seconds.
+    ///   - minimum: The minimum TTL in seconds.
+    public init(
+        labels: [String],
+        recordClass: UInt16 = 1,
+        timeToLive: UInt32,
+        primaryNameServer: [String],
+        responsibleMailbox: [String],
+        serial: UInt32,
+        refresh: UInt32,
+        retry: UInt32,
+        expire: UInt32,
+        minimum: UInt32
+    ) {
+        self.labels = DNSLabels(labels: labels)
+        self.recordClass = recordClass
+        self.timeToLive = timeToLive
+        self.primaryNameServer = DNSLabels(labels: primaryNameServer)
+        self.responsibleMailbox = DNSLabels(labels: responsibleMailbox)
+        self.serial = serial
+        self.refresh = refresh
+        self.retry = retry
+        self.expire = expire
+        self.minimum = minimum
     }
 
 }
