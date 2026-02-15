@@ -5,13 +5,14 @@ This skill verifies that swift-dns encoding is RFC-compliant by comparing re-enc
 ## Steps
 
 1. Activate the virtual environment (`.venv`)
-2. Ensure dnspython is installed via uv
-3. Set the `OUTPUT_ENCODED_PACKETS` environment variable
-4. Run the encoding test: `swift test --filter DNSPacketTests/encodePacket`
-5. Run the verification script: `Scripts/verify-dns-packets`
-6. Clear the `OUTPUT_ENCODED_PACKETS` environment variable
-7. Clean up the `tmp/` directory
-8. Report results to the user
+2. Clean up the `tmp/` directory
+3. Ensure dnspython is installed via uv
+4. Set the `OUTPUT_ENCODED_PACKETS` environment variable
+5. Run the encoding test: `swift test --filter DNSPacketTests/encodePacket`
+6. Run the verification script: `Scripts/verify-dns-packets`
+7. Clear the `OUTPUT_ENCODED_PACKETS` environment variable
+8. Clean up the `tmp/` directory
+9. Report results to the user
 
 ## Success Criteria
 
