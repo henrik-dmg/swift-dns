@@ -154,6 +154,50 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 timeToLive: timeToLive,
                 content: content
             )
+        case .ptr:
+            // Decode the pointer domain from the RDATA.
+            // Use the full packet buffer to support compression pointers.
+            var ptrBuffer: any ByteBufferReading = ByteBufferReader(byteBuffer.data)
+            ptrBuffer.currentIndex = rdataStartIndex
+            let domainName = try DNSLabels.decode(from: &ptrBuffer)
+            let bytesRead = ptrBuffer.currentIndex - rdataStartIndex
+            guard bytesRead == lengthOfCustomData else {
+                throw DecoderError.rdataLengthMismatch(expected: lengthOfCustomData, actual: bytesRead)
+            }
+            // Advance the original buffer past the RDATA section
+            byteBuffer.currentIndex = rdataStartIndex + lengthOfCustomData
+            return PTRRecord(
+                labels: labels,
+                recordType: recordType,
+                recordClass: recordClass,
+                timeToLive: timeToLive,
+                domainName: domainName
+            )
+        case .srv:
+            // Decode SRV record fields from the RDATA.
+            // Use the full packet buffer to support compression pointers.
+            var srvBuffer: any ByteBufferReading = ByteBufferReader(byteBuffer.data)
+            srvBuffer.currentIndex = rdataStartIndex
+            let priority = try srvBuffer.readUInt16()
+            let weight = try srvBuffer.readUInt16()
+            let port = try srvBuffer.readUInt16()
+            let target = try DNSLabels.decode(from: &srvBuffer)
+            let bytesRead = srvBuffer.currentIndex - rdataStartIndex
+            guard bytesRead == lengthOfCustomData else {
+                throw DecoderError.rdataLengthMismatch(expected: lengthOfCustomData, actual: bytesRead)
+            }
+            // Advance the original buffer past the RDATA section
+            byteBuffer.currentIndex = rdataStartIndex + lengthOfCustomData
+            return SRVRecord(
+                labels: labels,
+                recordType: recordType,
+                recordClass: recordClass,
+                timeToLive: timeToLive,
+                priority: priority,
+                weight: weight,
+                port: port,
+                target: target
+            )
         case .unknown:
             let customData = try byteBuffer.readBytes(lengthOfCustomData)
             return UnknownRecord(

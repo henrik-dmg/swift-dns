@@ -241,6 +241,10 @@ extension DNSPacket: Equatable {
             areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: SOARecord.self)
         case .txt:
             areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: TXTRecord.self)
+        case .ptr:
+            areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: PTRRecord.self)
+        case .srv:
+            areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: SRVRecord.self)
         }
     }
 

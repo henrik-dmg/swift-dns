@@ -45,9 +45,17 @@ public enum DNSRecordType: Sendable, Equatable, CaseIterable {
     /// Contains arbitrary text data, often used for various purposes like SPF, DKIM, etc.
     case txt
 
+    /// Pointer record (Type 12)
+    /// Maps an IP address to a domain name (reverse DNS lookup).
+    case ptr
+
+    /// Service Locator record (Type 33)
+    /// Specifies the location of services (host and port) for a domain.
+    case srv
+
     /// Returns all possible record types, including the unknown case.
     public static var allCases: [DNSRecordType] {
-        [.unknown(0), .a, .aaaa, .ns, .cname, .mx, .soa, .txt]
+        [.unknown(0), .a, .aaaa, .ns, .cname, .mx, .soa, .txt, .ptr, .srv]
     }
 
 }
@@ -73,6 +81,8 @@ extension DNSRecordType: DNSPacketDecodable {
         case 2: .ns
         case 6: .soa
         case 16: .txt
+        case 12: .ptr
+        case 33: .srv
         default: .unknown(integer)
         }
     }
@@ -99,6 +109,8 @@ extension DNSRecordType: DNSPacketEncodable {
             case .ns: 2
             case .soa: 6
             case .txt: 16
+            case .ptr: 12
+            case .srv: 33
             case .unknown(let integer): integer
             }
         byteBuffer.write(integerToEncode)

@@ -822,4 +822,265 @@ struct DNSRecordDecoderTests {
         #expect(soaRecord.minimum == 86400)
     }
 
+    // MARK: - PTR Record Tests
+
+    @Test("decodes PTR record with correct domain name")
+    func decodePTRRecord() throws {
+        var data = Data()
+
+        // Record name: "1.168.192.in-addr.arpa"
+        data.append(contentsOf: [0x01])
+        data.append(contentsOf: "1".data(using: .ascii)!)
+        data.append(contentsOf: [0x03])
+        data.append(contentsOf: "168".data(using: .ascii)!)
+        data.append(contentsOf: [0x03])
+        data.append(contentsOf: "192".data(using: .ascii)!)
+        data.append(contentsOf: [0x07])
+        data.append(contentsOf: "in-addr".data(using: .ascii)!)
+        data.append(contentsOf: [0x04])
+        data.append(contentsOf: "arpa".data(using: .ascii)!)
+        data.append(contentsOf: [0x00])
+
+        // Type: PTR (12)
+        data.append(contentsOf: [0x00, 0x0C])
+
+        // Class: IN (1)
+        data.append(contentsOf: [0x00, 0x01])
+
+        // TTL: 3600
+        data.append(contentsOf: [0x00, 0x00, 0x0E, 0x10])
+
+        // RDLENGTH: "host.example.com" = 1+4+1+7+1+3+1 = 18 bytes
+        data.append(contentsOf: [0x00, 0x12])
+
+        // RDATA: "host.example.com"
+        data.append(contentsOf: [0x04])
+        data.append(contentsOf: "host".data(using: .ascii)!)
+        data.append(contentsOf: [0x07])
+        data.append(contentsOf: "example".data(using: .ascii)!)
+        data.append(contentsOf: [0x03])
+        data.append(contentsOf: "com".data(using: .ascii)!)
+        data.append(contentsOf: [0x00])
+
+        var buffer: any ByteBufferReading = ByteBufferReader(data)
+
+        let record = try DNSRecordDecoder.decode(from: &buffer)
+
+        #expect(record.recordType == .ptr)
+
+        let ptrRecord = try #require(record as? PTRRecord)
+
+        #expect(ptrRecord.labels.labels == ["1", "168", "192", "in-addr", "arpa"])
+        #expect(ptrRecord.domainName.labels == ["host", "example", "com"])
+    }
+
+    @Test("encodes and decodes PTR record round-trip")
+    func encodeDecodePTRRecordRoundTrip() throws {
+        let originalRecord = PTRRecord(
+            labels: DNSLabels(labels: ["1", "168", "192", "in-addr", "arpa"]),
+            recordType: .ptr,
+            recordClass: 1,
+            timeToLive: 3600,
+            domainName: DNSLabels(labels: ["host", "example", "com"])
+        )
+
+        var buffer: any ByteBufferWriting = ByteBufferWriter()
+        try originalRecord.encode(into: &buffer)
+        let encodedData = buffer.data
+
+        var readBuffer: any ByteBufferReading = ByteBufferReader(encodedData)
+        let decodedRecord = try DNSRecordDecoder.decode(from: &readBuffer)
+
+        let ptrRecord = try #require(decodedRecord as? PTRRecord)
+
+        #expect(ptrRecord.labels.labels == originalRecord.labels.labels)
+        #expect(ptrRecord.recordType == originalRecord.recordType)
+        #expect(ptrRecord.recordClass == originalRecord.recordClass)
+        #expect(ptrRecord.timeToLive == originalRecord.timeToLive)
+        #expect(ptrRecord.domainName.labels == originalRecord.domainName.labels)
+    }
+
+    @Test("PTR record computes lengthOfCustomData from domain name")
+    func ptrRecordComputesLength() {
+        let record = PTRRecord(
+            labels: DNSLabels(labels: ["1", "168", "192", "in-addr", "arpa"]),
+            recordType: .ptr,
+            recordClass: 1,
+            timeToLive: 3600,
+            domainName: DNSLabels(labels: ["host", "example", "com"])
+        )
+
+        // "host.example.com": (1+4) + (1+7) + (1+3) + 1 = 18
+        #expect(record.lengthOfCustomData == 18)
+    }
+
+    @Test("PTR record round-trips through compressed encoding and decoding")
+    func ptrRecordCompressedRoundTrip() throws {
+        let ptrRecord = PTRRecord(
+            labels: DNSLabels(labels: ["1", "168", "192", "in-addr", "arpa"]),
+            recordType: .ptr,
+            recordClass: 1,
+            timeToLive: 3600,
+            domainName: DNSLabels(labels: ["host", "example", "com"])
+        )
+
+        let packet = try DNSPacket(
+            id: 5678,
+            isResponse: true,
+            isRecursionDesired: true,
+            queries: [DNSQuery(labels: ["1", "168", "192", "in-addr", "arpa"], recordType: .ptr, recordClass: 1)],
+            records: [ptrRecord]
+        )
+
+        var encoder = DNSPacketEncoder()
+        encoder.shouldCompressLabels = true
+        let compressedData = try encoder.encode(packet: packet)
+
+        let decoder = DNSPacketDecoder()
+        let decodedPacket = try decoder.decode(from: compressedData)
+
+        #expect(decodedPacket == packet)
+    }
+
+    // MARK: - SRV Record Tests
+
+    @Test("decodes SRV record with correct fields")
+    func decodeSRVRecord() throws {
+        var data = Data()
+
+        // Record name: "_http._tcp.example.com"
+        data.append(contentsOf: [0x05])
+        data.append(contentsOf: "_http".data(using: .ascii)!)
+        data.append(contentsOf: [0x04])
+        data.append(contentsOf: "_tcp".data(using: .ascii)!)
+        data.append(contentsOf: [0x07])
+        data.append(contentsOf: "example".data(using: .ascii)!)
+        data.append(contentsOf: [0x03])
+        data.append(contentsOf: "com".data(using: .ascii)!)
+        data.append(contentsOf: [0x00])
+
+        // Type: SRV (33)
+        data.append(contentsOf: [0x00, 0x21])
+
+        // Class: IN (1)
+        data.append(contentsOf: [0x00, 0x01])
+
+        // TTL: 300
+        data.append(contentsOf: [0x00, 0x00, 0x01, 0x2C])
+
+        // RDLENGTH: 2+2+2 + "www.example.com" (1+3+1+7+1+3+1 = 17) = 23 bytes
+        data.append(contentsOf: [0x00, 0x17])
+
+        // RDATA:
+        // Priority: 10
+        data.append(contentsOf: [0x00, 0x0A])
+        // Weight: 60
+        data.append(contentsOf: [0x00, 0x3C])
+        // Port: 80
+        data.append(contentsOf: [0x00, 0x50])
+
+        // Target: "www.example.com"
+        data.append(contentsOf: [0x03])
+        data.append(contentsOf: "www".data(using: .ascii)!)
+        data.append(contentsOf: [0x07])
+        data.append(contentsOf: "example".data(using: .ascii)!)
+        data.append(contentsOf: [0x03])
+        data.append(contentsOf: "com".data(using: .ascii)!)
+        data.append(contentsOf: [0x00])
+
+        var buffer: any ByteBufferReading = ByteBufferReader(data)
+
+        let record = try DNSRecordDecoder.decode(from: &buffer)
+
+        #expect(record.recordType == .srv)
+
+        let srvRecord = try #require(record as? SRVRecord)
+
+        #expect(srvRecord.labels.labels == ["_http", "_tcp", "example", "com"])
+        #expect(srvRecord.priority == 10)
+        #expect(srvRecord.weight == 60)
+        #expect(srvRecord.port == 80)
+        #expect(srvRecord.target.labels == ["www", "example", "com"])
+    }
+
+    @Test("encodes and decodes SRV record round-trip")
+    func encodeDecodeSRVRecordRoundTrip() throws {
+        let originalRecord = SRVRecord(
+            labels: DNSLabels(labels: ["_http", "_tcp", "example", "com"]),
+            recordType: .srv,
+            recordClass: 1,
+            timeToLive: 300,
+            priority: 10,
+            weight: 60,
+            port: 80,
+            target: DNSLabels(labels: ["www", "example", "com"])
+        )
+
+        var buffer: any ByteBufferWriting = ByteBufferWriter()
+        try originalRecord.encode(into: &buffer)
+        let encodedData = buffer.data
+
+        var readBuffer: any ByteBufferReading = ByteBufferReader(encodedData)
+        let decodedRecord = try DNSRecordDecoder.decode(from: &readBuffer)
+
+        let srvRecord = try #require(decodedRecord as? SRVRecord)
+
+        #expect(srvRecord.labels.labels == originalRecord.labels.labels)
+        #expect(srvRecord.recordType == originalRecord.recordType)
+        #expect(srvRecord.recordClass == originalRecord.recordClass)
+        #expect(srvRecord.timeToLive == originalRecord.timeToLive)
+        #expect(srvRecord.priority == originalRecord.priority)
+        #expect(srvRecord.weight == originalRecord.weight)
+        #expect(srvRecord.port == originalRecord.port)
+        #expect(srvRecord.target.labels == originalRecord.target.labels)
+    }
+
+    @Test("SRV record computes lengthOfCustomData from fields")
+    func srvRecordComputesLength() {
+        let record = SRVRecord(
+            labels: DNSLabels(labels: ["_http", "_tcp", "example", "com"]),
+            recordType: .srv,
+            recordClass: 1,
+            timeToLive: 300,
+            priority: 10,
+            weight: 60,
+            port: 80,
+            target: DNSLabels(labels: ["www", "example", "com"])
+        )
+
+        // 6 (priority + weight + port) + "www.example.com": (1+3) + (1+7) + (1+3) + 1 = 6 + 17 = 23
+        #expect(record.lengthOfCustomData == 23)
+    }
+
+    @Test("SRV record round-trips through compressed encoding and decoding")
+    func srvRecordCompressedRoundTrip() throws {
+        let srvRecord = SRVRecord(
+            labels: DNSLabels(labels: ["_http", "_tcp", "example", "com"]),
+            recordType: .srv,
+            recordClass: 1,
+            timeToLive: 300,
+            priority: 10,
+            weight: 60,
+            port: 80,
+            target: DNSLabels(labels: ["www", "example", "com"])
+        )
+
+        let packet = try DNSPacket(
+            id: 9012,
+            isResponse: true,
+            isRecursionDesired: true,
+            queries: [DNSQuery(labels: ["_http", "_tcp", "example", "com"], recordType: .srv, recordClass: 1)],
+            records: [srvRecord]
+        )
+
+        var encoder = DNSPacketEncoder()
+        encoder.shouldCompressLabels = true
+        let compressedData = try encoder.encode(packet: packet)
+
+        let decoder = DNSPacketDecoder()
+        let decodedPacket = try decoder.decode(from: compressedData)
+
+        #expect(decodedPacket == packet)
+    }
+
 }
