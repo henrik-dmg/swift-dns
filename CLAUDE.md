@@ -126,3 +126,28 @@ The library follows a symmetric encode/decode architecture:
 - Linting includes swift-format and Periphery dead code scanning
 - Documentation automatically built and deployed to GitHub Pages
 - All workflows cache SPM dependencies in `.build`
+
+## Coding Guidelines
+
+### Order of Declaration
+
+Structure types in the following order:
+
+- typealiases and associated types
+- properties
+    - static
+    - instance
+    - computed
+- initialisers
+- overridden methods
+- methods
+
+For each section, sort by access:
+
+- open/public
+- internal
+- private
+
+### Formatting
+
+Add an empty line at the beginning and at the end of a type.
