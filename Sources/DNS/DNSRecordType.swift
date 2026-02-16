@@ -53,9 +53,13 @@ public enum DNSRecordType: Sendable, Equatable, CaseIterable {
     /// Specifies the location of services (host and port) for a domain.
     case srv
 
+    /// OPT pseudo-record (Type 41)
+    /// Used by EDNS (Extension Mechanisms for DNS, RFC 6891) to signal extended capabilities.
+    case opt
+
     /// Returns all possible record types, including the unknown case.
     public static var allCases: [DNSRecordType] {
-        [.unknown(0), .a, .aaaa, .ns, .cname, .mx, .soa, .txt, .ptr, .srv]
+        [.unknown(0), .a, .aaaa, .ns, .cname, .mx, .soa, .txt, .ptr, .srv, .opt]
     }
 
 }
@@ -83,6 +87,7 @@ extension DNSRecordType: DNSPacketDecodable {
         case 16: .txt
         case 12: .ptr
         case 33: .srv
+        case 41: .opt
         default: .unknown(integer)
         }
     }
@@ -111,6 +116,7 @@ extension DNSRecordType: DNSPacketEncodable {
             case .txt: 16
             case .ptr: 12
             case .srv: 33
+            case .opt: 41
             case .unknown(let integer): integer
             }
         byteBuffer.write(integerToEncode)

@@ -335,6 +335,24 @@ struct DNSPacketTests {
         #expect(response.header.numberOfResources == 0)
     }
 
+    @Test("response factory with EDNS propagation")
+    func responseFactoryWithEDNS() throws {
+        let request = try DNSPacket(
+            id: 42,
+            queries: [DNSQuery(labels: ["example", "com"], recordType: .a, recordClass: 1)],
+            edns: OPTRecord(udpPayloadSize: 4096)
+        )
+
+        let response = try request.makeResponse(
+            isRecursionAvailable: true,
+            edns: OPTRecord(udpPayloadSize: 1232, dnssecOK: true)
+        )
+
+        #expect(response.edns != nil)
+        #expect(response.edns?.udpPayloadSize == 1232)
+        #expect(response.edns?.dnssecOK == true)
+    }
+
     @Test("response factory with error result code")
     func responseFactoryWithError() throws {
         let request = try DNSPacket(
@@ -379,6 +397,106 @@ struct DNSPacketTests {
         let decoded = try decoder.decode(from: data)
 
         #expect(decoded == original)
+    }
+
+    @Test("packet with EDNS round-trips through encode and decode")
+    func ednsRoundTrip() throws {
+        let query = DNSQuery(labels: ["example", "com"], recordType: .a, recordClass: 1)
+        let record = ARecord(
+            labels: DNSLabels(labels: ["example", "com"]),
+            recordClass: 1,
+            timeToLive: 300,
+            address: IPv4Address(93, 184, 216, 34)
+        )
+
+        let edns = OPTRecord(udpPayloadSize: 4096, dnssecOK: true)
+
+        let original = try DNSPacket(
+            id: 54321,
+            isResponse: true,
+            isRecursionDesired: true,
+            isRecursionAvailable: true,
+            queries: [query],
+            records: [record],
+            edns: edns
+        )
+
+        let encoder = DNSPacketEncoder()
+        let data = try encoder.encode(packet: original)
+
+        let decoder = DNSPacketDecoder()
+        let decoded = try decoder.decode(from: data)
+
+        #expect(decoded == original)
+        #expect(decoded.edns != nil)
+        #expect(decoded.edns?.udpPayloadSize == 4096)
+        #expect(decoded.edns?.dnssecOK == true)
+    }
+
+    @Test("packet with EDNS options round-trips through encode and decode")
+    func ednsWithOptionsRoundTrip() throws {
+        let cookie = CookieOption(
+            clientCookie: Data(repeating: 0xAB, count: 8),
+            serverCookie: Data(repeating: 0xCD, count: 16)
+        )
+        let edns = OPTRecord(udpPayloadSize: 1232, options: [cookie])
+
+        let original = try DNSPacket(
+            id: 11111,
+            queries: [DNSQuery(labels: ["example", "com"], recordType: .a, recordClass: 1)],
+            edns: edns
+        )
+
+        let encoder = DNSPacketEncoder()
+        let data = try encoder.encode(packet: original)
+
+        let decoder = DNSPacketDecoder()
+        let decoded = try decoder.decode(from: data)
+
+        #expect(decoded == original)
+        #expect(decoded.edns?.options.count == 1)
+    }
+
+    @Test("header numberOfResources includes EDNS OPT record")
+    func headerResourceCountIncludesEDNS() throws {
+        let record = ARecord(
+            labels: DNSLabels(labels: ["example", "com"]),
+            recordClass: 1,
+            timeToLive: 300,
+            address: IPv4Address(1, 2, 3, 4)
+        )
+
+        let packet = try DNSPacket(
+            id: 1,
+            resources: [record],
+            edns: OPTRecord()
+        )
+
+        // 1 regular resource + 1 OPT record
+        #expect(packet.header.numberOfResources == 2)
+        #expect(packet.resources.count == 1)
+    }
+
+    @Test("extendedResultCode returns header RCODE when no EDNS")
+    func extendedResultCodeWithoutEDNS() throws {
+        let packet = try DNSPacket(resultCode: .serverFailure)
+        #expect(packet.extendedResultCode == UInt16(DNSResultCode.serverFailure.rawValue))
+    }
+
+    @Test("extendedResultCode combines header and EDNS RCODE")
+    func extendedResultCodeWithEDNS() throws {
+        let packet = try DNSPacket(
+            resultCode: .noError,
+            edns: OPTRecord(extendedRCODE: 1)
+        )
+        // Combined: (1 << 4) | 0 = 16 which is BADVERS
+        #expect(packet.extendedResultCode == 16)
+    }
+
+    @Test("packet without EDNS has nil edns property")
+    func noEDNSPacket() throws {
+        let packet = try DNSPacket(id: 1)
+        #expect(packet.edns == nil)
     }
 
     @Test("response factory packet round-trips through encode and decode")

@@ -17,6 +17,9 @@ public enum DecoderError: LocalizedError {
     case cantReadOpCode(UInt8)
     case invalidIPv6Address(bytes: Data)
     case rdataLengthMismatch(expected: Int, actual: Int)
+    case invalidOPTRecordName
+    case multipleOPTRecords
+    case unsupportedEDNSVersion(UInt8)
 
     public var errorDescription: String? {
         switch self {
@@ -29,6 +32,9 @@ public enum DecoderError: LocalizedError {
         case .invalidIPv6Address(let bytes): "Invalid IPv6 address \(bytes.hexEncodedString())"
         case .rdataLengthMismatch(let expected, let actual):
             "RDATA length mismatch: expected \(expected) bytes, read \(actual)"
+        case .invalidOPTRecordName: "OPT record NAME field must be root domain (0x00)"
+        case .multipleOPTRecords: "Only one OPT record is allowed per DNS message"
+        case .unsupportedEDNSVersion(let version): "Unsupported EDNS version \(version)"
         }
     }
 
