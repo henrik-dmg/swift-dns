@@ -14,6 +14,15 @@ import Foundation
 /// - **TTL** → packed bitfield containing ``extendedRCODE``, ``version``, and ``dnssecOK``
 ///
 /// The RDATA contains a sequence of EDNS ``EDNSOption`` values.
+///
+// Wire format:
+// +------------+--------------+------------------------------+
+// |  NAME (0)  |  TYPE (41)   |  CLASS (UDP payload size)    |
+// +------------+--------------+------------------------------+
+// |                 TTL (packed bitfield)                    |
+// +------------------------------------------------------+
+// |          RDLENGTH          |      RDATA (options)        |
+// +----------------------------+-----------------------------+
 public struct OPTRecord: Sendable {
 
     // MARK: - Properties
@@ -156,20 +165,21 @@ extension OPTRecord {
 extension OPTRecord: Equatable {
 
     public static func == (lhs: OPTRecord, rhs: OPTRecord) -> Bool {
-        guard
+        let isMetadataEqual =
             lhs.udpPayloadSize == rhs.udpPayloadSize
-                && lhs.extendedRCODE == rhs.extendedRCODE
-                && lhs.version == rhs.version
-                && lhs.dnssecOK == rhs.dnssecOK
-                && lhs.options.count == rhs.options.count
-        else {
+            && lhs.extendedRCODE == rhs.extendedRCODE
+            && lhs.version == rhs.version
+            && lhs.dnssecOK == rhs.dnssecOK
+            && lhs.options.count == rhs.options.count
+
+        guard isMetadataEqual else {
             return false
         }
 
         for (index, option) in lhs.options.enumerated() {
             let otherOption = rhs.options[index]
-            if !areOptionsEqual(lhs: option, rhs: otherOption) {
-                return false
+            guard areOptionsEqual(lhs: option, rhs: otherOption) else {
+                return false  // Early return on first mismatch
             }
         }
 

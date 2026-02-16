@@ -43,10 +43,7 @@ struct UnknownEDNSOptionTests {
 
     // MARK: - Helpers
 
-    private func makeOption(
-        code: EDNSOptionCode = .unknown(99),
-        data: Data = Data([0xDE, 0xAD])
-    ) -> UnknownEDNSOption {
+    private func makeOption(code: EDNSOptionCode = .unknown(99), data: Data = Data([0xDE, 0xAD])) -> UnknownEDNSOption {
         UnknownEDNSOption(code: code, data: data)
     }
 

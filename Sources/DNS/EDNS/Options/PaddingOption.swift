@@ -12,6 +12,8 @@ import Foundation
 /// with specific queries based on message length.
 public struct PaddingOption: EDNSOption, EDNSOptionEncodable {
 
+    // MARK: - Properties
+
     public let code: EDNSOptionCode = .padding
 
     public var dataLength: UInt16 {
@@ -20,6 +22,8 @@ public struct PaddingOption: EDNSOption, EDNSOptionEncodable {
 
     /// The padding data (typically zero-filled bytes).
     public let padding: Data
+
+    // MARK: - Init
 
     /// Creates a new Padding option.
     ///

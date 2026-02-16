@@ -11,6 +11,8 @@ import Foundation
 /// is not recognized by the decoder, allowing round-trip encoding.
 public struct UnknownEDNSOption: EDNSOption, EDNSOptionEncodable {
 
+    // MARK: - Properties
+
     public let code: EDNSOptionCode
 
     public var dataLength: UInt16 {
@@ -19,6 +21,8 @@ public struct UnknownEDNSOption: EDNSOption, EDNSOptionEncodable {
 
     /// The raw option data.
     public let data: Data
+
+    // MARK: - Init
 
     /// Creates a new unknown EDNS option.
     ///

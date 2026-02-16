@@ -12,6 +12,8 @@ import Foundation
 /// DNS abuse such as amplification attacks and cache poisoning.
 public struct CookieOption: EDNSOption, EDNSOptionEncodable {
 
+    // MARK: - Properties
+
     public let code: EDNSOptionCode = .cookie
 
     public var dataLength: UInt16 {
@@ -24,6 +26,8 @@ public struct CookieOption: EDNSOption, EDNSOptionEncodable {
 
     /// The server cookie (8 to 32 bytes), or `nil` if not present.
     public let serverCookie: Data?
+
+    // MARK: - Init
 
     /// Creates a new Cookie option.
     ///

@@ -11,6 +11,8 @@ import Foundation
 /// an opaque identifier for the name server that handled the query.
 public struct NSIDOption: EDNSOption, EDNSOptionEncodable {
 
+    // MARK: - Properties
+
     public let code: EDNSOptionCode = .nsid
 
     public var dataLength: UInt16 {
@@ -19,6 +21,8 @@ public struct NSIDOption: EDNSOption, EDNSOptionEncodable {
 
     /// The opaque name server identifier.
     public let payload: Data
+
+    // MARK: - Init
 
     /// Creates a new NSID option.
     ///

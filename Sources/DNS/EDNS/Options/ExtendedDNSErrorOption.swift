@@ -12,6 +12,8 @@ import Foundation
 /// and an optional human-readable extra text field.
 public struct ExtendedDNSErrorOption: EDNSOption, EDNSOptionEncodable {
 
+    // MARK: - Properties
+
     public let code: EDNSOptionCode = .extendedDNSError
 
     public var dataLength: UInt16 {
@@ -25,6 +27,8 @@ public struct ExtendedDNSErrorOption: EDNSOption, EDNSOptionEncodable {
 
     /// Optional human-readable extra text providing more detail about the error.
     public let extraText: String?
+
+    // MARK: - Init
 
     /// Creates a new Extended DNS Error option.
     ///

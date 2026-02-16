@@ -12,6 +12,8 @@ import Foundation
 /// networks to provide geographically appropriate responses.
 public struct ClientSubnetOption: EDNSOption, EDNSOptionEncodable {
 
+    // MARK: - Properties
+
     public let code: EDNSOptionCode = .clientSubnet
 
     public var dataLength: UInt16 {
@@ -30,6 +32,8 @@ public struct ClientSubnetOption: EDNSOption, EDNSOptionEncodable {
 
     /// The address bytes, truncated to the source prefix length.
     public let address: Data
+
+    // MARK: - Init
 
     /// Creates a new Client Subnet option.
     ///
