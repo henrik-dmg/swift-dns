@@ -5,8 +5,6 @@
 //  Created by Henrik Panhans on 26.07.24.
 //
 
-// swift-format-ignore: AlwaysUseLowerCamelCase
-
 /// Represents the type of a DNS resource record.
 ///
 /// Each record type has a specific numeric value assigned by IANA and serves a particular purpose in the DNS system.

@@ -3,8 +3,6 @@
 //  swift-dns
 //
 
-// swift-format-ignore: AlwaysUseLowerCamelCase
-
 import Foundation
 
 /// Represents an OPT pseudo-record used by EDNS (RFC 6891).
@@ -158,11 +156,12 @@ extension OPTRecord {
 extension OPTRecord: Equatable {
 
     public static func == (lhs: OPTRecord, rhs: OPTRecord) -> Bool {
-        guard lhs.udpPayloadSize == rhs.udpPayloadSize
-            && lhs.extendedRCODE == rhs.extendedRCODE
-            && lhs.version == rhs.version
-            && lhs.dnssecOK == rhs.dnssecOK
-            && lhs.options.count == rhs.options.count
+        guard
+            lhs.udpPayloadSize == rhs.udpPayloadSize
+                && lhs.extendedRCODE == rhs.extendedRCODE
+                && lhs.version == rhs.version
+                && lhs.dnssecOK == rhs.dnssecOK
+                && lhs.options.count == rhs.options.count
         else {
             return false
         }

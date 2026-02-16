@@ -3,8 +3,6 @@
 //  swift-dns
 //
 
-// swift-format-ignore: AlwaysUseLowerCamelCase
-
 import Foundation
 
 /// Represents the Extended DNS Error EDNS option (RFC 8914).

@@ -79,6 +79,7 @@ extension DNSPacket {
     ///   - records: The answer section resource records.
     ///   - authorities: The authority section resource records.
     ///   - resources: The additional section resource records.
+    ///   - edns: The optional EDNS record.
     /// - Throws: Throws an ``EncoderError`` when any of the passed arrays exceed the maximum allowed number of entries  (`UInt16.max`).
     public init(
         id: UInt16 = .random(in: 0 ... UInt16.max),
@@ -158,6 +159,7 @@ extension DNSPacket {
     ///   - records: The answer section resource records.
     ///   - authorities: The authority section resource records.
     ///   - resources: The additional section resource records.
+    ///   - edns: The optional EDNS record.
     /// - Returns: A DNS response packet.
     /// - Throws: Throws an ``EncoderError`` when any of the passed arrays exceed the maximum number of allowed entries (`UInt16.max`).
     public func makeResponse(

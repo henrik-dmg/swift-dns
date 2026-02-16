@@ -3,8 +3,6 @@
 //  swift-dns
 //
 
-// swift-format-ignore: AlwaysUseLowerCamelCase
-
 import Foundation
 
 /// Represents the Name Server Identifier (NSID) EDNS option (RFC 5001).

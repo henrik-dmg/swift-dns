@@ -3,8 +3,6 @@
 //  swift-dns
 //
 
-// swift-format-ignore: AlwaysUseLowerCamelCase
-
 /// Represents the option code for an EDNS option.
 ///
 /// Option codes are assigned by IANA and identify the type of EDNS option
