@@ -172,6 +172,39 @@ struct OPTRecordTests {
         #expect(decoded.dnssecOK == true)
     }
 
+    @Test("throws rdataLengthMismatch when options overshoot declared RDLENGTH")
+    func rdataLengthMismatch() throws {
+        // Build an OPT record with RDLENGTH = 7, but the single padding option
+        // occupies 8 bytes (2 code + 2 length + 4 data). The options loop will
+        // decode the option (consuming 8 bytes), leaving currentIndex one past
+        // rdataEnd, which the guard should detect.
+        var writer: ByteBufferWriting = ByteBufferWriter()
+        writer.write(UInt8(0))  // NAME: root domain
+        writer.write(UInt16(41))  // TYPE: OPT
+        writer.write(UInt16(4096))  // CLASS: UDP payload size
+        writer.write(UInt32(0))  // TTL: all zeros
+        writer.write(UInt16(7))  // RDLENGTH: 7 (one less than the 8-byte option)
+        writer.write(UInt16(EDNSOptionCode.padding.rawValue))  // option code = 12
+        writer.write(UInt16(4))  // option dataLength = 4
+        writer.write(UInt8(0))
+        writer.write(UInt8(0))
+        writer.write(UInt8(0))
+        writer.write(UInt8(0))
+
+        var reader: ByteBufferReading = ByteBufferReader(writer.data)
+        #expect {
+            try OPTRecord.decode(from: &reader)
+        } throws: { error in
+            guard let decoderError = error as? DecoderError else {
+                return false
+            }
+            guard case .rdataLengthMismatch = decoderError else {
+                return false
+            }
+            return true
+        }
+    }
+
     @Test("encode produces correct wire format for minimal OPT")
     func wireFormat() throws {
         let opt = OPTRecord(udpPayloadSize: 4096, extendedRCODE: 0, version: 0, dnssecOK: false)

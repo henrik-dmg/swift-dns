@@ -292,6 +292,21 @@ struct DNSPacketTests {
         }
     }
 
+    @Test("throws when resources plus EDNS OPT exceed UInt16.max")
+    func tooManyResourcesWithEDNS() throws {
+        let record = ARecord(
+            labels: DNSLabels(labels: ["example", "com"]),
+            recordClass: 1,
+            timeToLive: 60,
+            address: IPv4Address(1, 2, 3, 4)
+        )
+        let resources = Array(repeating: record as any DNSRecord, count: Int(UInt16.max))
+
+        #expect(throws: EncoderError.self) {
+            try DNSPacket(resources: resources, edns: OPTRecord())
+        }
+    }
+
     // MARK: - Response Factory
 
     @Test("response factory copies request metadata")
@@ -491,6 +506,29 @@ struct DNSPacketTests {
         )
         // Combined: (1 << 4) | 0 = 16 which is BADVERS
         #expect(packet.extendedResultCode == 16)
+    }
+
+    @Test("extendedResultCode for badVersion with OPT extendedRCODE 1 equals 16")
+    func extendedResultCodeBadVersionWithOPT() throws {
+        // badVersion rawValue = 16, low nibble = 0; extendedRCODE = 1
+        // (1 << 4) | 0 = 16
+        let packet = try DNSPacket(resultCode: .badVersion, edns: OPTRecord(extendedRCODE: 1))
+        #expect(packet.extendedResultCode == 16)
+    }
+
+    @Test("extendedResultCode for badVersion without OPT returns low nibble only")
+    func extendedResultCodeBadVersionWithoutOPT() throws {
+        // badVersion rawValue = 16, low nibble = 0x0F & 16 = 0
+        let packet = try DNSPacket(resultCode: .badVersion)
+        #expect(packet.extendedResultCode == 0)
+    }
+
+    @Test("extendedResultCode for badCookie with OPT extendedRCODE 1 equals 23")
+    func extendedResultCodeBadCookieWithOPT() throws {
+        // badCookie rawValue = 23, low nibble = 7; extendedRCODE = 1
+        // (1 << 4) | 7 = 23
+        let packet = try DNSPacket(resultCode: .badCookie, edns: OPTRecord(extendedRCODE: 1))
+        #expect(packet.extendedResultCode == 23)
     }
 
     @Test("packet without EDNS has nil edns property")

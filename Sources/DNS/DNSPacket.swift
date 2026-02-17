@@ -101,10 +101,17 @@ extension DNSPacket {
         try Self.validateNumberOfEntries(count: queries.count, container: "queries")
         try Self.validateNumberOfEntries(count: records.count, container: "records")
         try Self.validateNumberOfEntries(count: authorities.count, container: "authorities")
-        try Self.validateNumberOfEntries(count: resources.count, container: "resources")
 
-        // The OPT record counts toward the additional section on the wire
-        let totalResources = resources.count + (edns != nil ? 1 : 0)
+        // The OPT record counts toward the additional section on the wire.
+        // Validate the combined count to prevent UInt16 overflow on cast.
+        let ednsCount = edns != nil ? 1 : 0
+        let totalResources = resources.count + ednsCount
+        guard totalResources <= UInt16.max else {
+            throw EncoderError.tooManyRecordsToEncode(
+                count: totalResources,
+                container: "resources (including EDNS OPT)"
+            )
+        }
 
         self.header = DNSHeader(
             id: id,
@@ -289,10 +296,11 @@ extension DNSPacket {
     ///
     /// When no OPT record is present, returns the header's result code unchanged.
     public var extendedResultCode: UInt16 {
+        let headerNibble = UInt16(header.resultCode.rawValue & 0x0F)
         guard let edns else {
-            return UInt16(header.resultCode.rawValue)
+            return headerNibble
         }
-        return UInt16(edns.extendedRCODE) << 4 | UInt16(header.resultCode.rawValue)
+        return UInt16(edns.extendedRCODE) << 4 | headerNibble
     }
 
 }

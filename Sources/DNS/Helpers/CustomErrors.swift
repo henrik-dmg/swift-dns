@@ -20,6 +20,8 @@ public enum DecoderError: LocalizedError {
     case invalidOPTRecordName
     case multipleOPTRecords
     case unsupportedEDNSVersion(UInt8)
+    case invalidEDNSOptionLength(code: EDNSOptionCode, length: UInt16, minimum: UInt16)
+    case ednsOptionLengthMismatch(code: EDNSOptionCode, expected: UInt16, actual: UInt16)
 
     public var errorDescription: String? {
         switch self {
@@ -45,6 +47,10 @@ public enum DecoderError: LocalizedError {
             "Only one OPT record is allowed per DNS message"
         case .unsupportedEDNSVersion(let version):
             "Unsupported EDNS version \(version)"
+        case .invalidEDNSOptionLength(let code, let length, let minimum):
+            "EDNS option \(code) has length \(length), minimum required is \(minimum)"
+        case .ednsOptionLengthMismatch(let code, let expected, let actual):
+            "EDNS option \(code) consumed \(actual) bytes but declared length was \(expected)"
         }
     }
 

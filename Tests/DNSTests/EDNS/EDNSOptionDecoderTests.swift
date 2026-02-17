@@ -131,4 +131,73 @@ struct EDNSOptionDecoderTests {
         #expect(decoded as? UnknownEDNSOption == original)
     }
 
+    // MARK: - Malformed Length Rejection
+
+    @Test("rejects ClientSubnet option with dataLength less than 4")
+    func rejectsClientSubnetTooShort() throws {
+        var writer: ByteBufferWriting = ByteBufferWriter()
+        writer.write(UInt16(EDNSOptionCode.clientSubnet.rawValue))  // code = 8
+        writer.write(UInt16(3))  // dataLength = 3 (minimum is 4)
+        writer.write(UInt8(0))
+        writer.write(UInt8(1))
+        writer.write(UInt8(24))  // 3 bytes of data
+
+        var reader: ByteBufferReading = ByteBufferReader(writer.data)
+        #expect {
+            try EDNSOptionDecoder.decode(from: &reader)
+        } throws: { error in
+            guard let decoderError = error as? DecoderError else {
+                return false
+            }
+            guard case .invalidEDNSOptionLength(let code, let length, let minimum) = decoderError else {
+                return false
+            }
+            return code == .clientSubnet && length == 3 && minimum == 4
+        }
+    }
+
+    @Test("rejects Cookie option with dataLength less than 8")
+    func rejectsCookieTooShort() throws {
+        var writer: ByteBufferWriting = ByteBufferWriter()
+        writer.write(UInt16(EDNSOptionCode.cookie.rawValue))  // code = 10
+        writer.write(UInt16(7))  // dataLength = 7 (minimum is 8)
+        for _ in 0 ..< 7 {
+            writer.write(UInt8(0xAB))
+        }
+
+        var reader: ByteBufferReading = ByteBufferReader(writer.data)
+        #expect {
+            try EDNSOptionDecoder.decode(from: &reader)
+        } throws: { error in
+            guard let decoderError = error as? DecoderError else {
+                return false
+            }
+            guard case .invalidEDNSOptionLength(let code, let length, let minimum) = decoderError else {
+                return false
+            }
+            return code == .cookie && length == 7 && minimum == 8
+        }
+    }
+
+    @Test("rejects ExtendedDNSError option with dataLength less than 2")
+    func rejectsExtendedDNSErrorTooShort() throws {
+        var writer: ByteBufferWriting = ByteBufferWriter()
+        writer.write(UInt16(EDNSOptionCode.extendedDNSError.rawValue))  // code = 15
+        writer.write(UInt16(1))  // dataLength = 1 (minimum is 2)
+        writer.write(UInt8(0x00))  // 1 byte of data
+
+        var reader: ByteBufferReading = ByteBufferReader(writer.data)
+        #expect {
+            try EDNSOptionDecoder.decode(from: &reader)
+        } throws: { error in
+            guard let decoderError = error as? DecoderError else {
+                return false
+            }
+            guard case .invalidEDNSOptionLength(let code, let length, let minimum) = decoderError else {
+                return false
+            }
+            return code == .extendedDNSError && length == 1 && minimum == 2
+        }
+    }
+
 }

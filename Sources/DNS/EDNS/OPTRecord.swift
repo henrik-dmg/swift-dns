@@ -149,6 +149,13 @@ extension OPTRecord {
             options.append(option)
         }
 
+        guard buffer.currentIndex == rdataEnd else {
+            throw DecoderError.rdataLengthMismatch(
+                expected: rdataLength,
+                actual: buffer.currentIndex - (rdataEnd - rdataLength)
+            )
+        }
+
         return OPTRecord(
             udpPayloadSize: udpPayloadSize,
             extendedRCODE: extendedRCODE,
