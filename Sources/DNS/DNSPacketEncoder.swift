@@ -28,6 +28,7 @@ public struct DNSPacketEncoder {
         for record in packet.records { try record.encode(into: &byteBuffer) }
         for authority in packet.authorities { try authority.encode(into: &byteBuffer) }
         for resource in packet.resources { try resource.encode(into: &byteBuffer) }
+        if let edns = packet.edns { try edns.encode(into: &byteBuffer) }
 
         return byteBuffer.data
     }

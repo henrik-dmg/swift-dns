@@ -180,11 +180,15 @@ extension DNSHeader: DNSPacketEncodable {
             | (UInt8(isResponse ? 1 : 0) << 7)
         buffer.write(flagA)
 
-        // Encode and write the second byte of flags (flagsB)
-        let flagB =
-            resultCode.rawValue | (UInt8(isCheckingDisabled ? 1 : 0) << 4)
-            | (UInt8(isAuthenticatedData ? 1 : 0) << 5)
-            | (UInt8(z ? 1 : 0) << 6) | (UInt8(isRecursionAvailable ? 1 : 0) << 7)
+        // Encode and write the second byte of flags (flagsB).
+        // Mask RCODE to 4 bits so values > 15 (e.g. badVersion=16, badCookie=23)
+        // don't corrupt the CD/AD/Z/RA bits.
+        let rcodeBits = resultCode.rawValue & 0x0F
+        let cdBit = UInt8(isCheckingDisabled ? 1 : 0) << 4
+        let adBit = UInt8(isAuthenticatedData ? 1 : 0) << 5
+        let zBit = UInt8(z ? 1 : 0) << 6
+        let raBit = UInt8(isRecursionAvailable ? 1 : 0) << 7
+        let flagB = rcodeBits | cdBit | adBit | zBit | raBit
         buffer.write(flagB)
 
         // Write the count fields

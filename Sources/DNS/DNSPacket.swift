@@ -28,6 +28,13 @@ public struct DNSPacket {
     /// The additional section of the DNS message, containing additional resource records.
     public let resources: [any DNSRecord]
 
+    /// The EDNS OPT pseudo-record, if present.
+    ///
+    /// When non-nil, indicates that this message uses EDNS (RFC 6891).
+    /// The OPT record is carried in the additional section on the wire
+    /// but exposed here as a dedicated field for type-safe access.
+    public let edns: OPTRecord?
+
 }
 
 // MARK: - Init
@@ -72,6 +79,7 @@ extension DNSPacket {
     ///   - records: The answer section resource records.
     ///   - authorities: The authority section resource records.
     ///   - resources: The additional section resource records.
+    ///   - edns: The optional EDNS record.
     /// - Throws: Throws an ``EncoderError`` when any of the passed arrays exceed the maximum allowed number of entries  (`UInt16.max`).
     public init(
         id: UInt16 = .random(in: 0 ... UInt16.max),
@@ -87,12 +95,23 @@ extension DNSPacket {
         queries: [DNSQuery] = [],
         records: [any DNSRecord] = [],
         authorities: [any DNSRecord] = [],
-        resources: [any DNSRecord] = []
+        resources: [any DNSRecord] = [],
+        edns: OPTRecord? = nil
     ) throws(EncoderError) {
         try Self.validateNumberOfEntries(count: queries.count, container: "queries")
         try Self.validateNumberOfEntries(count: records.count, container: "records")
         try Self.validateNumberOfEntries(count: authorities.count, container: "authorities")
-        try Self.validateNumberOfEntries(count: resources.count, container: "resources")
+
+        // The OPT record counts toward the additional section on the wire.
+        // Validate the combined count to prevent UInt16 overflow on cast.
+        let ednsCount = edns != nil ? 1 : 0
+        let totalResources = resources.count + ednsCount
+        guard totalResources <= UInt16.max else {
+            throw EncoderError.tooManyRecordsToEncode(
+                count: totalResources,
+                container: "resources (including EDNS OPT)"
+            )
+        }
 
         self.header = DNSHeader(
             id: id,
@@ -109,12 +128,13 @@ extension DNSPacket {
             numberOfQueries: UInt16(queries.count),
             numberOfRecords: UInt16(records.count),
             numberOfAuthorities: UInt16(authorities.count),
-            numberOfResources: UInt16(resources.count)
+            numberOfResources: UInt16(totalResources)
         )
         self.queries = queries
         self.records = records
         self.authorities = authorities
         self.resources = resources
+        self.edns = edns
     }
 
 }
@@ -146,6 +166,7 @@ extension DNSPacket {
     ///   - records: The answer section resource records.
     ///   - authorities: The authority section resource records.
     ///   - resources: The additional section resource records.
+    ///   - edns: The optional EDNS record.
     /// - Returns: A DNS response packet.
     /// - Throws: Throws an ``EncoderError`` when any of the passed arrays exceed the maximum number of allowed entries (`UInt16.max`).
     public func makeResponse(
@@ -157,7 +178,8 @@ extension DNSPacket {
         isAuthenticatedData: Bool = false,
         records: [any DNSRecord] = [],
         authorities: [any DNSRecord] = [],
-        resources: [any DNSRecord] = []
+        resources: [any DNSRecord] = [],
+        edns: OPTRecord? = nil
     ) throws(EncoderError) -> DNSPacket {
         try DNSPacket(
             id: header.id,
@@ -173,7 +195,8 @@ extension DNSPacket {
             queries: queries,
             records: records,
             authorities: authorities,
-            resources: resources
+            resources: resources,
+            edns: edns
         )
     }
 
@@ -188,7 +211,7 @@ extension DNSPacket: Equatable {
     /// Two packets are considered equal if all their sections (header, queries, records, authorities, and resources)
     /// are equal in both content and order.
     public static func == (lhs: DNSPacket, rhs: DNSPacket) -> Bool {
-        guard lhs.header == rhs.header && lhs.queries == rhs.queries else {
+        guard lhs.header == rhs.header && lhs.queries == rhs.queries && lhs.edns == rhs.edns else {
             return false
         }
 
@@ -245,6 +268,9 @@ extension DNSPacket: Equatable {
             areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: PTRRecord.self)
         case .srv:
             areRecordsOfTypeEqual(lhs: lhs, rhs: rhs, type: SRVRecord.self)
+        case .opt:
+            // OPT records are handled separately via the edns property
+            false
         }
     }
 
@@ -258,6 +284,23 @@ extension DNSPacket: Equatable {
             return false
         }
         return castedLHS == castedRHS
+    }
+
+}
+
+// MARK: - EDNS
+
+extension DNSPacket {
+
+    /// The full extended RCODE combining the header's 4-bit RCODE with the OPT record's 8-bit extension.
+    ///
+    /// When no OPT record is present, returns the header's result code unchanged.
+    public var extendedResultCode: UInt16 {
+        let headerNibble = UInt16(header.resultCode.rawValue & 0x0F)
+        guard let edns else {
+            return headerNibble
+        }
+        return UInt16(edns.extendedRCODE) << 4 | headerNibble
     }
 
 }

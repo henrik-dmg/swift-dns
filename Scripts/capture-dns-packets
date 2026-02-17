@@ -134,16 +134,16 @@ def validate_and_sanitize_args(args):
         sys.exit(1)
 
     # Sanitize arguments for safe filename generation
-    # Only allow alphanumeric, dots, hyphens, and @
+    # Only allow alphanumeric, dots, hyphens, @, +, and =
     args_str = " ".join(args)
-    if not re.match(r"^[@a-zA-Z0-9.\s+-]+$", args_str):
+    if not re.match(r"^[@a-zA-Z0-9.\s+=:-]+$", args_str):
         print("Error: Invalid characters in dig arguments")
-        print("Only alphanumeric characters, dots, @, +, and - are allowed")
+        print("Only alphanumeric characters, dots, @, +, =, :, and - are allowed")
         sys.exit(1)
 
     # Create safe filename suffix
     filename_suffix = (
-        args_str.replace("@", "").replace("+", "").replace(" ", "-").replace("/", "-")
+        args_str.replace("@", "").replace("+", "").replace("=", "").replace(" ", "-").replace("/", "-").replace(":", "")
     )
     while "--" in filename_suffix:
         filename_suffix = filename_suffix.replace("--", "-")
