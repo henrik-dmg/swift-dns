@@ -1,54 +1,64 @@
 #!/usr/bin/env bash
 
+# Converts the coverage data of `swift test --enable-code-coverage` to an lcov file (macOS only).
+# Run `swift test --enable-code-coverage` before you run this script.
+#
+# Usage: Scripts/convert-coverage-report [--output <path>]
+#
 # Adapted from https://github.com/michaelhenry/swifty-code-coverage/blob/main/lcov.sh
 
-OUTPUT_FILE="coverage/lcov.info"
-IGNORE_FILENAME_REGEX=".build|Tests|Pods|Carthage|DerivedData"
-BUILD_PATH=".build"
+set -euo pipefail
 
-while :; do
+OUTPUT_FILE="coverage/lcov.info"
+IGNORE_FILENAME_REGEX=".build|Tests"
+
+while [ $# -gt 0 ]; do
   case $1 in
-    --target) TARGET=$2
-    shift
-    ;;
-    --output) OUTPUT_FILE=$2
-    shift
-    ;;
-    *) break
+    --output)
+      OUTPUT_FILE=$2
+      shift
+      ;;
+    --target)
+      # Not used. SwiftPM gives the test bundle path. The option stays for old calls.
+      shift
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
   esac
   shift
 done
 
-if [ -z "$BUILD_PATH" ]; then
-  echo "Missing --build-path. Either DerivedData or .build (for spm)"
+# SwiftPM gives the paths for the active build system. The bundle name and the folder
+# are different for the native build system and the Swift Build system of Swift 6.4.
+BIN_PATH=$(swift build --show-bin-path)
+INSTR_PROFILE="$(dirname "$(swift test --show-codecov-path)")/default.profdata"
+XCTEST_BUNDLE=$(find "$BIN_PATH" -maxdepth 1 -name "*.xctest" | head -1)
+
+if [ ! -f "$INSTR_PROFILE" ]; then
+  echo "No coverage data at $INSTR_PROFILE. Run swift test --enable-code-coverage first."
   exit 1
 fi
 
-if [ -z "$TARGET" ]; then
-  echo "Missing --target. Either an .app or an .xctest (for spm)"
+if [ -z "$XCTEST_BUNDLE" ]; then
+  echo "No .xctest bundle in $BIN_PATH. Run swift test --enable-code-coverage first."
   exit 1
 fi
 
-INSTR_PROFILE=$(find $BUILD_PATH -name "*.profdata")
-TARGET_PATH=$(find $BUILD_PATH -name "$TARGET" | head -1)
-if [ -f $TARGET_PATH ]; then
-  OBJECT_FILE="$TARGET_PATH"
-else
-  TARGET=$(echo $TARGET | sed  's/\.[^.]*$//')
-  OBJECT_FILE=$(find $BUILD_PATH -name "$TARGET" | head -1)
-fi
+OBJECT_FILE="$XCTEST_BUNDLE/Contents/MacOS/$(basename "$XCTEST_BUNDLE" .xctest)"
 
-mkdir -p $(dirname "$OUTPUT_FILE")
+mkdir -p "$(dirname "$OUTPUT_FILE")"
 
-# print to stdout
+# Print the summary to stdout
 xcrun llvm-cov report \
   "$OBJECT_FILE" \
-  --instr-profile=$INSTR_PROFILE \
-  --ignore-filename-regex=$IGNORE_FILENAME_REGEX \
+  --instr-profile="$INSTR_PROFILE" \
+  --ignore-filename-regex="$IGNORE_FILENAME_REGEX"
 
-# Export to code coverage file
+# Export the coverage data in lcov format
 xcrun llvm-cov export \
   "$OBJECT_FILE" \
-  --instr-profile=$INSTR_PROFILE \
-  --ignore-filename-regex=$IGNORE_FILENAME_REGEX \
-  --format="lcov" > $OUTPUT_FILE
+  --instr-profile="$INSTR_PROFILE" \
+  --ignore-filename-regex="$IGNORE_FILENAME_REGEX" \
+  --format="lcov" > "$OUTPUT_FILE"

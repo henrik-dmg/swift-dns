@@ -8,12 +8,16 @@ on:
       - "Sources/**"
       - "Tests/**"
       - "**/*.md"
+      - ".github/workflows/documentation.yml"
   workflow_dispatch:
+
+env:
+  SWIFT_VERSION: "6.4"
 
 jobs:
   deploy-pages:
     name: Deploy Documentation to GitHub Pages
-    runs-on: macos-latest
+    runs-on: xcode-27
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -27,14 +31,14 @@ jobs:
         with:
           xcode-version: latest-stable
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Cache SPM dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .build
-          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-swift-${{ env.SWIFT_VERSION }}-docs-${{ hashFiles('Package.resolved') }}
           restore-keys: |
-            ${{ runner.os }}-spm-
+            ${{ runner.os }}-${{ runner.arch }}-swift-${{ env.SWIFT_VERSION }}-docs-
       - name: Build DocC
         run: Scripts/build-docc-archive
       - name: Upload artifact

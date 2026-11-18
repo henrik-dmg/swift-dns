@@ -9,43 +9,61 @@ on:
       - "Tests/**"
       - "Package.swift"
       - "Package.resolved"
+      - ".github/workflows/tests.yml"
   pull_request:
     branches:
       - main
   workflow_dispatch:
 
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Keep this value the same as the swift image tag of the Linux job.
+  SWIFT_VERSION: "6.4"
+
 jobs:
-  test-swift:
-    name: ${{ matrix.os }} Tests
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
+  test-linux:
+    name: Linux Tests
+    runs-on: ubuntu-latest
+    container: swift:6.4
     steps:
-      - name: Setup Swift
-        if: runner.os != 'macOS'
-        uses: swift-actions/setup-swift@v2
-      - name: Setup Xcode
-        if: runner.os == 'macOS'
-        uses: maxim-lobanov/setup-xcode@v1
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Cache SPM dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .build
-          key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
+          key: ${{ runner.os }}-${{ runner.arch }}-swift-${{ env.SWIFT_VERSION }}-spm-${{ hashFiles('Package.resolved') }}
           restore-keys: |
-            ${{ runner.os }}-spm-
+            ${{ runner.os }}-${{ runner.arch }}-swift-${{ env.SWIFT_VERSION }}-spm-
+      - name: Run tests
+        run: swift test
+
+  test-macos:
+    name: macOS Tests
+    runs-on: xcode-27
+    steps:
+      - name: Configure Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - name: Checkout Code
+        uses: actions/checkout@v7
+      - name: Cache SPM dependencies
+        uses: actions/cache@v6
+        with:
+          path: .build
+          key: ${{ runner.os }}-${{ runner.arch }}-swift-${{ env.SWIFT_VERSION }}-spm-${{ hashFiles('Package.resolved') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ runner.arch }}-swift-${{ env.SWIFT_VERSION }}-spm-
       - name: Run tests
         run: swift test --enable-code-coverage -v
       - name: Convert coverage report
-        if: runner.os == 'macOS'
         continue-on-error: true
-        run: Scripts/convert-coverage-report --target swift-dnsPackageTests
+        run: Scripts/convert-coverage-report
       - name: Upload coverage reports to Codecov
-        if: runner.os == 'macOS'
         continue-on-error: true
         uses: codecov/codecov-action@v5
         with:
@@ -55,10 +73,10 @@ jobs:
 
   verify-rfc-compliance:
     name: RFC Compliance Verification
-    runs-on: macos-latest
+    runs-on: xcode-27
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -67,8 +85,10 @@ jobs:
         uses: astral-sh/setup-uv@v5
       - name: Install dnspython
         run: uv pip install --system dnspython
-      - name: Setup Xcode
+      - name: Configure Xcode
         uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
       - name: Run encoding test with packet output
         env:
           OUTPUT_ENCODED_PACKETS: "1"

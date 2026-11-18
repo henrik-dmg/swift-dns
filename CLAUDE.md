@@ -42,7 +42,7 @@ Scripts/lint-swift-code
 periphery scan --format github-actions --config config/periphery.yml
 
 # Convert coverage report (macOS only)
-Scripts/convert-coverage-report --target swift-dnsPackageTests
+Scripts/convert-coverage-report
 ```
 
 ### Documentation
