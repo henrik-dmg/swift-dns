@@ -7,6 +7,11 @@
 A Swift library for working with DNS packets. It allows decoding and encoding packets, as well as building and parsing queries and responses.
 Built based on Emil Hernvall's [dnsguide](https://github.com/EmilHernvall/dnsguide).
 
+## Requirements
+
+- Swift 6.4 or later
+- macOS 14 or later, iOS 16 or later, or Linux
+
 ## Installation
 
 To install the package, add the following to your `Package.swift` file:
@@ -35,7 +40,7 @@ The documentation can be found at https://henrik-dmg.github.io/swift-dns
 
 ### Decoding a packet
 
-Decoding a packet from bytes is straightforward, simply call `DNSPacket.decode(from:)`.
+To decode a packet from bytes, call `DNSPacketDecoder.decode(from:)`.
 
 ```swift
 import DNS
@@ -53,12 +58,12 @@ print(packet.resources)
 
 ### Encoding a packet
 
-Encoding a packet is just as easy, simply call `DNSPacketEncoder.encode(packet:)`.
+To encode a packet to bytes, call `DNSPacketEncoder.encode(packet:)`.
 
 ```swift
 import DNS
 
-let encoder = DNSPacketEncoder() // Create an encoder
+var encoder = DNSPacketEncoder() // Create an encoder
 encoder.shouldCompressLabels = false // Disable label compression if you want
 let data = try encoder.encode(packet: packet) // Encode the packet
 ```
@@ -67,7 +72,18 @@ let data = try encoder.encode(packet: packet) // Encode the packet
 
 Contributions are welcome! Please open an issue or submit a pull request.
 
+Do not report a security vulnerability in a public issue. Follow the steps in [SECURITY.md](SECURITY.md).
+
 ## Contributors
 
 - [Henrik Panhans](https://github.com/henrik-dmg)
 - Hopefully you soon!
+
+## License
+
+swift-dns is available under the MIT license. The full text is in [LICENSE](LICENSE).
+
+## Acknowledgments
+
+swift-dns is based on [dnsguide](https://github.com/EmilHernvall/dnsguide) by Emil Hernvall. dnsguide uses the MIT license. Its
+copyright notice and license text are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
