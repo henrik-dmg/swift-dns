@@ -12,7 +12,7 @@ swift-dns is a Swift library for working with DNS packets. It enables decoding a
 
 - macOS 14+
 - iOS 16+
-- Swift 6.2+
+- Swift 6.4+
 
 ## Common Development Commands
 
