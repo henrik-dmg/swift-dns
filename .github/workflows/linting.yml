@@ -53,8 +53,9 @@ jobs:
           key: ${{ runner.os }}-${{ runner.arch }}-swift-${{ env.SWIFT_VERSION }}-periphery-${{ hashFiles('Package.resolved') }}
           restore-keys: |
             ${{ runner.os }}-${{ runner.arch }}-swift-${{ env.SWIFT_VERSION }}-periphery-
+      # The peripheryapp tap has an old cask that new Homebrew versions refuse. Homebrew core has a current formula.
       - name: Install periphery
-        run: brew install peripheryapp/periphery/periphery
+        run: brew install periphery
       # The default build system of Swift 6.4 writes no index store, and Periphery needs one.
       # The native build system writes the index store to .build/debug/index/store.
       - name: Build with index store
