@@ -38,9 +38,6 @@ Scripts/format-swift-code
 # Lint Swift code
 Scripts/lint-swift-code
 
-# Scan for dead code using Periphery
-periphery scan --format github-actions --config config/periphery.yml
-
 # Convert coverage report (macOS only)
 Scripts/convert-coverage-report
 ```
@@ -123,7 +120,7 @@ The library follows a symmetric encode/decode architecture:
 ## CI/CD
 
 - Tests run on both Ubuntu and macOS
-- Linting includes swift-format and Periphery dead code scanning
+- Linting runs swift-format
 - Documentation automatically built and deployed to GitHub Pages
 - All workflows cache SPM dependencies in `.build`
 
