@@ -25,10 +25,11 @@ enum TestResourcesProvider {
             return []
         }
 
+        // On Linux, the resource bundle can also contain a generated Info.plist. Keep only the packet fixtures.
         return
             files
             .map { $0.lastPathComponent }
-            .filter { !$0.hasPrefix(".") }
+            .filter { $0.hasPrefix("query-") || $0.hasPrefix("response-") }
             .sorted()
     }
 
