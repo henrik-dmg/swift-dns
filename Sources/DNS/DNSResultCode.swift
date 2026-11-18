@@ -35,6 +35,14 @@ public enum DNSResultCode: Sendable, RawRepresentable, Equatable {
     /// The name server refuses to perform the specified operation for policy reasons.
     case queryRefused
 
+    /// Bad OPT Version (16, RFC 6891)
+    /// The server does not support the EDNS version requested by the client.
+    case badVersion
+
+    /// Bad Cookie (23, RFC 7873)
+    /// The server requires a valid DNS cookie but one was not provided or was invalid.
+    case badCookie
+
     /// An other, unknown operation code
     case other(UInt8)
 
@@ -46,6 +54,8 @@ public enum DNSResultCode: Sendable, RawRepresentable, Equatable {
         case .nonExistentDomain: 3
         case .notImplemented: 4
         case .queryRefused: 5
+        case .badVersion: 16
+        case .badCookie: 23
         case let .other(value): value
         }
     }
@@ -59,6 +69,8 @@ public enum DNSResultCode: Sendable, RawRepresentable, Equatable {
             case 3: .nonExistentDomain
             case 4: .notImplemented
             case 5: .queryRefused
+            case 16: .badVersion
+            case 23: .badCookie
             default: .other(rawValue)
             }
     }

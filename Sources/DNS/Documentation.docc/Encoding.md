@@ -10,7 +10,7 @@ or constructing custom DNS messages.
 
 ## Building a Query
 
-Create a query packet using ``DNSPacket/init(id:operationCode:resultCode:isResponse:isRecursionDesired:isRecursionAvailable:isAnswerAuthoritative:isMessageTruncated:isCheckingDisabled:isAuthenticatedData:queries:records:authorities:resources:)``:
+Create a query packet using ``DNSPacket/init(id:operationCode:resultCode:isResponse:isRecursionDesired:isRecursionAvailable:isAnswerAuthoritative:isMessageTruncated:isCheckingDisabled:isAuthenticatedData:queries:records:authorities:resources:edns:)``:
 
 ```swift
 import DNS
@@ -24,7 +24,7 @@ let query = try DNSPacket(
 
 ## Building a Response
 
-When you have an incoming request, use ``DNSPacket/makeResponse(resultCode:isRecursionAvailable:isAnswerAuthoritative:isMessageTruncated:isCheckingDisabled:isAuthenticatedData:records:authorities:resources:)``
+When you have an incoming request, use ``DNSPacket/makeResponse(resultCode:isRecursionAvailable:isAnswerAuthoritative:isMessageTruncated:isCheckingDisabled:isAuthenticatedData:records:authorities:resources:edns:)``
 to build a response that automatically mirrors the request's ID, queries, and flags:
 
 ```swift

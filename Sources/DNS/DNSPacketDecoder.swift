@@ -55,11 +55,26 @@ public struct DNSPacketDecoder {
             authorities.append(record)
         }
 
-        // Decode the additional section
+        // Decode the additional section, detecting OPT records for EDNS
         var resources: [any DNSRecord] = []
+        var edns: OPTRecord? = nil
         for _ in 0 ..< header.numberOfResources {
-            let record = try DNSRecordDecoder.decode(from: &byteBuffer)
-            resources.append(record)
+            // Peek at the first byte and type to detect OPT records.
+            // OPT records always have NAME = 0x00 (root domain) followed by TYPE = 41.
+            let savedIndex = byteBuffer.currentIndex
+            let firstByte = try byteBuffer.readByte()
+            let peekType = try byteBuffer.readUInt16()
+            try byteBuffer.seek(savedIndex)
+
+            if firstByte == 0x00 && peekType == 41 {
+                guard edns == nil else {
+                    throw DecoderError.multipleOPTRecords
+                }
+                edns = try OPTRecord.decode(from: &byteBuffer)
+            } else {
+                let record = try DNSRecordDecoder.decode(from: &byteBuffer)
+                resources.append(record)
+            }
         }
 
         Logger.decoder.debug("ByteBuffer has parsed \(byteBuffer.currentIndex)/\(data.count) bytes")
@@ -69,7 +84,8 @@ public struct DNSPacketDecoder {
             queries: queries,
             records: records,
             authorities: authorities,
-            resources: resources
+            resources: resources,
+            edns: edns
         )
     }
 

@@ -189,6 +189,18 @@ extension DNSRecordDecoder: DNSPacketDecodable {
                 port: port,
                 target: target
             )
+        case .opt:
+            // OPT records are intercepted at the DNSPacketDecoder level before reaching here.
+            // If one reaches this point, decode it as an unknown record as a fallback.
+            let customData = try byteBuffer.readBytes(lengthOfCustomData)
+            return UnknownRecord(
+                labels: labels,
+                recordType: recordType,
+                recordClass: recordClass,
+                timeToLive: timeToLive,
+                lengthOfCustomData: UInt16(lengthOfCustomData),
+                bytes: customData
+            )
         case .unknown:
             let customData = try byteBuffer.readBytes(lengthOfCustomData)
             return UnknownRecord(
