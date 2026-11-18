@@ -11,3 +11,6 @@ DerivedData/
 /.claude/settings.local.json
 __pycache__
 tmp/
+
+# GSD planning documents (kept locally, not published)
+/.planning/
