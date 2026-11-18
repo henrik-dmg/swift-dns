@@ -104,9 +104,8 @@ struct DNSPacketCompressor: ByteBufferWriting {
                 hasWrittenJumpDirective = true
             } else {
                 guard let firstLabel = remainingLabelsToEncode.first else {
-                    // Defensive: This shouldn't happen — if we’re here, something went wrong
-                    // TODO: Ideally replace this with a proper thrown error
-                    continue
+                    // Defensive: This shouldn’t happen — if we’re here, something went wrong
+                    throw EncoderError.inconsistentLabelState
                 }
 
                 // No reusable suffix found, so write the label as normal

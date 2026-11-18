@@ -118,4 +118,20 @@ struct DNSPacketCompressorTests {
         )
     }
 
+    @Test("EncoderError.inconsistentLabelState is a valid EncoderError case")
+    func inconsistentLabelStateCaseExists() {
+        // This test is a compile-time assertion: if the case doesn't exist, this file won't compile.
+        // The path is logically unreachable through the public API — this is intentional defensive code.
+        let error: EncoderError = .inconsistentLabelState
+        #expect(error.errorDescription != nil)
+    }
+
+    @Test("EncoderError.tooManyRecordsToEncode errorDescription contains count and closing parenthesis")
+    func tooManyRecordsErrorMessage() {
+        let error = EncoderError.tooManyRecordsToEncode(count: 70000, container: "answers")
+        let description = error.errorDescription ?? ""
+        #expect(description.contains("70000"), "Message should contain the count")
+        #expect(description.hasSuffix(")"), "Message should end with closing parenthesis")
+    }
+
 }
